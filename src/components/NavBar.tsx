@@ -33,7 +33,12 @@ const NavBar = ({ onSearch }: Props) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   return (
-    <Box bg={isDark ? "gray.800" : "white"} color={isDark ? "white" : "blue.800"} px={4} py={2}>
+    <Box
+      bg={isDark ? "gray.800" : "white"}
+      color={isDark ? "white" : "blue.800"}
+      px={4}
+      py={2}
+    >
       <Flex align="center" justify="space-between" wrap="wrap">
         <Image src={logo} boxSize="80px" alt="EventLight Logo" />
 
@@ -41,7 +46,6 @@ const NavBar = ({ onSearch }: Props) => {
           <SearchInput onSearch={onSearch} />
         </Box>
 
-        {/* Hamburger Menu (Mobile) */}
         <IconButton
           display={{ base: "block", lg: "none" }}
           icon={isOpen ? <IoCloseSharp /> : <RxHamburgerMenu />}
@@ -50,10 +54,7 @@ const NavBar = ({ onSearch }: Props) => {
           onClick={isOpen ? onClose : onOpen}
         />
 
-        <HStack
-          spacing={4}
-          display={{ base: "none", lg: "flex" }}
-        >
+        <HStack spacing={4} display={{ base: "none", lg: "flex" }}>
           <Button
             bg={isDark ? "blue.600" : "blue.800"}
             color="white"
@@ -74,7 +75,10 @@ const NavBar = ({ onSearch }: Props) => {
           <Button
             variant="ghost"
             color={isDark ? "blue.300" : "blue.800"}
-            _hover={{ bg: isDark ? "blue.700" : "blue.50", color: isDark ? "blue.500" : "blue.600" }}
+            _hover={{
+              bg: isDark ? "blue.700" : "blue.50",
+              color: isDark ? "blue.500" : "blue.600",
+            }}
           >
             Sign Up / Login
           </Button>
@@ -113,11 +117,15 @@ const NavBar = ({ onSearch }: Props) => {
                 <Button
                   variant="ghost"
                   color={isDark ? "blue.300" : "blue.800"}
-                  _hover={{ bg: isDark ? "blue.700" : "blue.50", color: isDark ? "blue.500" : "blue.600" }}
+                  _hover={{
+                    bg: isDark ? "blue.700" : "blue.50",
+                    color: isDark ? "blue.500" : "blue.600",
+                  }}
                   onClick={onClose}
                 >
                   Sign Up / Login
                 </Button>
+                <ColorModeSwitch />
               </VStack>
             </DrawerBody>
           </DrawerContent>

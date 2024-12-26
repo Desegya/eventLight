@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="200" viewBox="0 0 500 200">
+  <style>
+    .logo-text {
+      transition: fill 0.3s ease;
+    }
+    /* Default light mode color */
+    .logo-text {
+      fill: #333;
+    }
+    /* Dark mode color */
+    @media (prefers-color-scheme: dark) {
+      .logo-text {
+        fill: #fff;
+      }
+    }
+  </style>
+  <text x="50%" y="50%" font-family="'Helvetica Neue', sans-serif" font-weight="bold" font-size="70" class="logo-text" text-anchor="middle" alignment-baseline="middle">
+    eventLight
+  </text>
+</svg>

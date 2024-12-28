@@ -48,7 +48,7 @@ const EventGrid = () => {
         justifyContent="space-around"
         padding="10px"
       >
-        <Box w="100%" display={{ base: "block", md: "none" }}>
+        <Box w="100%"  display={{ base: "block", md: "none" }}>
           <Button
             variant="outline"
             borderRadius="30px"
@@ -78,7 +78,7 @@ const EventGrid = () => {
       
       </SimpleGrid>
 
-      <HStack w="100%" spacing={4} justify="right" mt={4} mr={4}>
+      <HStack w="100%" spacing={4} justify={{base: "center", md: "right"}} mt={4} mr={4}>
         <Button
           onClick={prevPage}
           isDisabled={currentPage === 1}

@@ -52,6 +52,8 @@ const EventCard = ({
   const iconColor = useColorModeValue("white", "blue.800");
   const priceButtonBg = isFree ? "green.500" : "red.500";
   const priceButtonHover = isFree ? "green.400" : "red.400";
+  const detailColor = useColorModeValue("gray.600", "gray.400");
+
 
   return (
     <Box position="relative" role="group" maxW="sm">
@@ -101,7 +103,7 @@ const EventCard = ({
         <CardBody>
           <Stack spacing={4}>
             {/* Event Name with Pricing Button */}
-            <HStack justifyContent="left" alignItems="center" gap={6}>
+            <HStack justifyContent="left" alignItems="center" gap={6} >
               <Heading size="md">{eventName}</Heading>
               <Button
                 size="xs"
@@ -117,7 +119,7 @@ const EventCard = ({
             </HStack>
 
             {/* HStack for Date and Location with Icons */}
-            <HStack spacing={4}>
+            <HStack spacing={4} color={detailColor}>
               <HStack spacing={2}>
                 <Icon as={FaCalendar} boxSize={4} />
                 <Text fontSize="sm">{eventDate}</Text>
@@ -130,7 +132,7 @@ const EventCard = ({
             </HStack>
 
             {/* Category and Organizer */}
-            <HStack spacing={4}>
+            <HStack spacing={4} color={detailColor}>
               <HStack spacing={2}>
                 <Icon as={FaTag} boxSize={4} />
                 <Text fontSize="sm">{eventCategory}</Text>

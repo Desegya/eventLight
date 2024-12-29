@@ -21,7 +21,16 @@ import {
   MenuItem,
   MenuDivider,
 } from "@chakra-ui/react";
-import { FiPlus, FiSearch, FiLogIn, FiHeart, FiBookmark, FiSettings, FiLogOut } from "react-icons/fi";
+import {
+  FiPlus,
+  FiSearch,
+  FiLogIn,
+  FiHeart,
+  FiBookmark,
+  FiSettings,
+  FiLogOut,
+  FiBell,
+} from "react-icons/fi";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { IoCloseSharp, IoPersonOutline } from "react-icons/io5";
 import logo from "../assets/logo.svg";
@@ -84,6 +93,41 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
               >
                 Find Events
               </Button>
+              <Menu>
+                <MenuButton
+                  as={IconButton}
+                  border="1px solid"
+                  borderRadius="full"
+                  aria-label="Notifications"
+                  icon={<FiBell />}
+                  variant="ghost"
+                  color={isDark ? "blue.300" : "blue.800"}
+                  _hover={{
+                    bg: isDark ? "blue.600" : "blue.100",
+                    color: isDark ? "blue.500" : "blue.600",
+                  }}
+                />
+                <MenuList>
+                  <MenuItem>
+                    <Box>
+                      <strong>Event Reminder</strong>
+                      <p>Your event is starting soon!</p>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem>
+                    <Box>
+                      <strong>New Event Added</strong>
+                      <p>A new event has been added to your favorite list.</p>
+                    </Box>
+                  </MenuItem>
+                  <MenuItem>
+                    <Box>
+                      <strong>Update Available</strong>
+                      <p>Your app has a new update available.</p>
+                    </Box>
+                  </MenuItem>
+                </MenuList>
+              </Menu>
             </>
           )}
 
@@ -122,12 +166,29 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                   <Icon as={IoPersonOutline} />
                 </MenuButton>
                 <MenuList>
-                  <MenuItem onClick={() => {}} icon={<Icon as={IoPersonOutline} />}>My Account</MenuItem>
-                  <MenuItem onClick={() => {}} icon={<Icon as={FiHeart} />} >Liked Events</MenuItem>
-                  <MenuItem onClick={() => {}} icon={<Icon as={FiBookmark} />}>Saved Events</MenuItem>
+                  <MenuItem
+                    onClick={() => {}}
+                    icon={<Icon as={IoPersonOutline} />}
+                  >
+                    My Account
+                  </MenuItem>
+                  <MenuItem onClick={() => {}} icon={<Icon as={FiHeart} />}>
+                    Liked Events
+                  </MenuItem>
+                  <MenuItem onClick={() => {}} icon={<Icon as={FiBookmark} />}>
+                    Saved Events
+                  </MenuItem>
                   <MenuDivider />
-                  <MenuItem onClick={() => {}} icon={<Icon as={FiSettings} />} >Settings</MenuItem>
-                  <MenuItem onClick={onLogout} icon={<Icon as={FiLogOut} />} color="red">Log Out</MenuItem>
+                  <MenuItem onClick={() => {}} icon={<Icon as={FiSettings} />}>
+                    Settings
+                  </MenuItem>
+                  <MenuItem
+                    onClick={onLogout}
+                    icon={<Icon as={FiLogOut} />}
+                    color="red"
+                  >
+                    Log Out
+                  </MenuItem>
                 </MenuList>
               </Menu>
             </>
@@ -222,6 +283,21 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                     >
                       <Icon as={FiBookmark} mr={2} />
                       Saved Events
+                    </Box>
+                    <Box
+                      as="a"
+                      href="#"
+                      color={isDark ? "blue.300" : "blue.800"}
+                      fontWeight="bold"
+                      _hover={{
+                        color: isDark ? "blue.500" : "blue.600",
+                      }}
+                      display="flex"
+                      alignItems="center"
+                      onClick={onLogout}
+                    >
+                      <Icon as={FiBell} mr={2} />
+                      Notifications
                     </Box>
                     <Box
                       as="a"

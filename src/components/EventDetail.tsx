@@ -7,7 +7,6 @@ import {
   Image,
   Button,
   Flex,
-  VStack,
   Divider,
   useColorModeValue,
   Spinner,
@@ -17,6 +16,7 @@ import {
   Tbody,
   Tr,
   Td,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import {
   FaArrowLeft,
@@ -323,7 +323,7 @@ const EventDetail = () => {
         </Box>
 
         {/* Right side content (Sidebar) */}
-        <Box width={{ base: "100%", md: "300px" }} py={4} borderRadius="md">
+        <Box flex={{ base: "1", lg: "0.4" }} py={4} borderRadius="md">
           {/* Countdown Timer */}
           <Heading size="md" mb={4}>
             <Flex>
@@ -339,12 +339,12 @@ const EventDetail = () => {
 
           {/* Related Events */}
           <Heading size="md" mb={4}>
-            <Flex align="center">
+            <Flex align="center" justify={{ base: "center", lg: "left" }}>
               <Icon as={FaLink} boxSize={6} mr={2} />
               Related Events
             </Flex>
           </Heading>
-          <VStack spacing={4}>
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 1 }} spacing={4}>
             {relatedEvents.map((relatedEvent) => (
               <Box
                 key={relatedEvent.eventid}
@@ -385,7 +385,7 @@ const EventDetail = () => {
                 </Button>
               </Box>
             ))}
-          </VStack>
+          </SimpleGrid>
 
           <Box width="100%" textAlign="right">
             <Button

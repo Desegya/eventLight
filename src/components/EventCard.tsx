@@ -23,8 +23,10 @@ import {
   FaBookmark,
 } from "react-icons/fa";
 import { TbCurrencyNaira } from "react-icons/tb";
+import { Link } from "react-router-dom"; // Import Link component
 
 interface EventCardProps {
+  eventid: number; // Add eventid to the props
   eventName: string;
   eventDate: string;
   eventLocation: string;
@@ -35,6 +37,7 @@ interface EventCardProps {
 }
 
 const EventCard = ({
+  eventid,
   eventName,
   eventDate,
   eventLocation,
@@ -54,7 +57,6 @@ const EventCard = ({
   const priceButtonHover = isFree ? "green.400" : "red.400";
   const detailColor = useColorModeValue("gray.600", "gray.400");
 
-
   return (
     <Box position="relative" role="group" maxW="sm">
       {/* Hover Icons */}
@@ -63,7 +65,7 @@ const EventCard = ({
         top="2"
         right="2"
         spacing={2}
-        display={{base: "flex", md: "none"}}
+        display={{ base: "flex", md: "none" }}
         _groupHover={{ display: "flex" }}
         zIndex="1"
       >
@@ -103,7 +105,7 @@ const EventCard = ({
         <CardBody>
           <Stack spacing={4}>
             {/* Event Name with Pricing Button */}
-            <HStack justifyContent="left" alignItems="center" gap={6} >
+            <HStack justifyContent="left" alignItems="center" gap={6}>
               <Heading size="md">{eventName}</Heading>
               <Button
                 size="xs"
@@ -145,20 +147,23 @@ const EventCard = ({
               </HStack>
             </HStack>
 
+            {/* View Details Button - Using Link for Navigation */}
             <Box textAlign="center" w="100%">
-              <Button
-                bg="blue.800"
-                color="white"
-                size="sm"
-                w="100%"
-                _hover={{
-                  bg: "blue.700",
-                  transform: "scale(1.03)",
-                  transition: "all 0.3s ease-in-out",
-                }}
-              >
-                View Details
-              </Button>
+              <Link to={`/event/${eventid}`}>
+                <Button
+                  bg="blue.800"
+                  color="white"
+                  size="sm"
+                  w="100%"
+                  _hover={{
+                    bg: "blue.700",
+                    transform: "scale(1.03)",
+                    transition: "all 0.3s ease-in-out",
+                  }}
+                >
+                  View Details
+                </Button>
+              </Link>
             </Box>
           </Stack>
         </CardBody>

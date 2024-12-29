@@ -66,6 +66,7 @@ const EventGrid = () => {
         {currentEvents.map((event, index) => (
           <EventCard
             key={index}
+            eventid={event.eventid}
             eventName={event.eventName}
             eventDate={event.eventDate}
             eventLocation={event.eventLocation}

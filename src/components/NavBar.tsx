@@ -305,6 +305,20 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                       display="flex"
                       alignItems="center"
                     >
+                      <Icon as={FiBell} mr={2} />
+                      Notifications
+                    </Box>
+                    <Box
+                      as="a"
+                      href="#"
+                      color={isDark ? "blue.300" : "blue.800"}
+                      fontWeight="bold"
+                      _hover={{
+                        color: isDark ? "blue.500" : "blue.600",
+                      }}
+                      display="flex"
+                      alignItems="center"
+                    >
                       <Icon as={FiSettings} mr={2} />
                       Settings
                     </Box>

@@ -63,18 +63,24 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
           <SearchInput onSearch={onSearch} />
         </Box>
 
+        {/* Hamburger menu for tablet and mobile */}
         <IconButton
-          display={{ base: "block", lg: "none" }}
+          display={{
+            base: "block",
+            md: isAuthenticated ? "block" : "none",
+            lg: "none",
+          }}
           icon={isOpen ? <IoCloseSharp /> : <RxHamburgerMenu />}
           aria-label="Toggle Menu"
           variant="ghost"
           onClick={isOpen ? onClose : onOpen}
         />
 
-        <HStack spacing={4} display={{ base: "none", lg: "flex" }}>
+        <HStack spacing={4} display={{ base: "none", md: "flex", lg: "flex" }}>
           {isAuthenticated && (
             <>
               <Button
+                display={{ base: "none", lg: "inline-flex" }}
                 bg={isDark ? "blue.600" : "blue.800"}
                 color="white"
                 leftIcon={<Icon as={FiPlus} />}
@@ -84,6 +90,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                 Add Events
               </Button>
               <Button
+                display={{ base: "none", lg: "inline-flex" }}
                 variant="outline"
                 color={isDark ? "blue.300" : "blue.800"}
                 borderColor={isDark ? "blue.300" : "blue.800"}
@@ -95,6 +102,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
               </Button>
               <Menu>
                 <MenuButton
+                  display={{ base: "none", lg: "inline-flex" }}
                   as={IconButton}
                   border="1px solid"
                   borderRadius="full"
@@ -148,8 +156,8 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
             <>
               <Menu>
                 <MenuButton
+                  display={{ base: "none", lg: "flex" }}
                   aria-label="Account"
-                  display="flex"
                   alignItems="center"
                   justifyContent="center"
                   w="40px"
@@ -199,7 +207,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
         </HStack>
       </Flex>
 
-      {/* Mobile Menu - Using Drawer as overlay */}
+      {/* Drawer for mobile menu */}
       <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
         <DrawerOverlay>
           <DrawerContent bg={isDark ? "gray.800" : "white"}>
@@ -209,53 +217,55 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
             <DrawerBody>
               <VStack as="nav" spacing={4} align="flex-start">
                 {/* Mobile Text Links */}
-                <Box
-                  as="a"
-                  href="#"
-                  color={isDark ? "blue.300" : "blue.800"}
-                  fontWeight="bold"
-                  _hover={{
-                    color: isDark ? "blue.500" : "blue.600",
-                  }}
-                  display="flex"
-                  alignItems="center"
-                >
-                  <Icon as={FiPlus} mr={2} />
-                  Add Events
-                </Box>
-                <Box
-                  as="a"
-                  href="#"
-                  color={isDark ? "blue.300" : "blue.800"}
-                  fontWeight="bold"
-                  _hover={{
-                    color: isDark ? "blue.500" : "blue.600",
-                  }}
-                  display="flex"
-                  alignItems="center"
-                >
-                  <Icon as={FiSearch} mr={2} />
-                  Find Events
-                </Box>
-
                 {!isAuthenticated ? (
-                  <Box
-                    as="a"
-                    href="#"
-                    color={isDark ? "blue.300" : "blue.800"}
-                    fontWeight="bold"
-                    _hover={{
-                      color: isDark ? "blue.500" : "blue.600",
-                    }}
-                    display="flex"
-                    alignItems="center"
-                    onClick={onLogin}
-                  >
-                    <Icon as={FiLogIn} mr={2} />
-                    Sign Up / Login
-                  </Box>
+                  <>
+                    <Box
+                      as="a"
+                      href="#"
+                      color={isDark ? "blue.300" : "blue.800"}
+                      fontWeight="bold"
+                      _hover={{
+                        color: isDark ? "blue.500" : "blue.600",
+                      }}
+                      display="flex"
+                      alignItems="center"
+                      onClick={onLogin}
+                    >
+                      <Icon as={FiLogIn} mr={2} />
+                      Sign Up / Login
+                    </Box>
+                    <ColorModeSwitch />
+                  </>
                 ) : (
                   <>
+                    <Box
+                      as="a"
+                      href="#"
+                      color={isDark ? "blue.300" : "blue.800"}
+                      fontWeight="bold"
+                      _hover={{
+                        color: isDark ? "blue.500" : "blue.600",
+                      }}
+                      display="flex"
+                      alignItems="center"
+                    >
+                      <Icon as={FiPlus} mr={2} />
+                      Add Events
+                    </Box>
+                    <Box
+                      as="a"
+                      href="#"
+                      color={isDark ? "blue.300" : "blue.800"}
+                      fontWeight="bold"
+                      _hover={{
+                        color: isDark ? "blue.500" : "blue.600",
+                      }}
+                      display="flex"
+                      alignItems="center"
+                    >
+                      <Icon as={FiSearch} mr={2} />
+                      Find Events
+                    </Box>
                     <Box
                       as="a"
                       href="#"
@@ -294,31 +304,27 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                       }}
                       display="flex"
                       alignItems="center"
-                      onClick={onLogout}
                     >
-                      <Icon as={FiBell} mr={2} />
-                      Notifications
+                      <Icon as={FiSettings} mr={2} />
+                      Settings
                     </Box>
                     <Box
                       as="a"
                       href="#"
-                      color={isDark ? "blue.300" : "blue.800"}
+                      color="red"
                       fontWeight="bold"
                       _hover={{
-                        color: isDark ? "blue.500" : "blue.600",
+                        color: "red.500",
                       }}
                       display="flex"
                       alignItems="center"
                       onClick={onLogout}
                     >
-                      <Icon as={IoPersonOutline} mr={2} />
-                      My Account
+                      <Icon as={FiLogOut} mr={2} />
+                      Log Out
                     </Box>
                   </>
                 )}
-
-                {/* Color Mode Switch only for non-authenticated users */}
-                {!isAuthenticated && <ColorModeSwitch />}
               </VStack>
             </DrawerBody>
           </DrawerContent>

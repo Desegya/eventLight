@@ -36,6 +36,7 @@ import { IoCloseSharp, IoPersonOutline } from "react-icons/io5";
 import logo from "../assets/logo.svg";
 import SearchInput from "./SearchInput";
 import ColorModeSwitch from "./ColorModeSwitch";
+import { Link } from "react-router-dom";
 
 interface Props {
   onSearch: (searchText: string) => void;
@@ -79,16 +80,18 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
         <HStack spacing={4} display={{ base: "none", md: "flex", lg: "flex" }}>
           {isAuthenticated && (
             <>
-              <Button
-                display={{ base: "none", lg: "inline-flex" }}
-                bg={isDark ? "blue.600" : "blue.800"}
-                color="white"
-                leftIcon={<Icon as={FiPlus} />}
-                borderRadius="full"
-                _hover={{ bg: isDark ? "blue.500" : "blue.600" }}
-              >
-                Add Events
-              </Button>
+              <Link to={`/events/add-event`}>
+                <Button
+                  display={{ base: "none", lg: "inline-flex" }}
+                  bg={isDark ? "blue.600" : "blue.800"}
+                  color="white"
+                  leftIcon={<Icon as={FiPlus} />}
+                  borderRadius="full"
+                  _hover={{ bg: isDark ? "blue.500" : "blue.600" }}
+                >
+                  Add Events
+                </Button>
+              </Link>
               <Button
                 display={{ base: "none", lg: "inline-flex" }}
                 variant="outline"

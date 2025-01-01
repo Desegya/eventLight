@@ -149,7 +149,7 @@ const EventCard = ({
 
             {/* View Details Button - Using Link for Navigation */}
             <Box textAlign="center" w="100%">
-              <Link to={`/event/${eventid}`}>
+              <Link to={`/events/${eventid}`}>
                 <Button
                   bg="blue.800"
                   color="white"

@@ -4,6 +4,8 @@ import EventDetail from "./components/EventDetail";
 import Welcome from "./components/Welcome";
 import AddEvent from "./components/AddEvent";
 import PreviewEvent from "./components/PreviewEvent";
+import Account from "./components/Account";
+import UserDashboard from "./components/UserDashboard";
 
 const router = createBrowserRouter([
   {
@@ -21,6 +23,14 @@ const router = createBrowserRouter([
   {
     path: '/events/preview-event',
     element: <PreviewEvent />,
+  },
+  {
+    path: '/account',
+    element: <Account />,
+  },
+  {
+    path: '/acc',
+    element: <UserDashboard />,
   },
 ]);
 

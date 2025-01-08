@@ -30,13 +30,14 @@ import {
   FiSettings,
   FiLogOut,
   FiBell,
+  FiClipboard
 } from "react-icons/fi";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { IoCloseSharp, IoPersonOutline } from "react-icons/io5";
 import logo from "../assets/logo.svg";
 import SearchInput from "./SearchInput";
 import ColorModeSwitch from "./ColorModeSwitch";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface Props {
   onSearch: (searchText: string) => void;
@@ -49,6 +50,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
 
   return (
     <Box
@@ -92,17 +94,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                   Add Events
                 </Button>
               </Link>
-              <Button
-                display={{ base: "none", lg: "inline-flex" }}
-                variant="outline"
-                color={isDark ? "blue.300" : "blue.800"}
-                borderColor={isDark ? "blue.300" : "blue.800"}
-                borderRadius="full"
-                leftIcon={<Icon as={FiSearch} />}
-                _hover={{ bg: isDark ? "blue.700" : "blue.50" }}
-              >
-                Find Events
-              </Button>
+              
               <Menu>
                 <MenuButton
                   display={{ base: "none", lg: "inline-flex" }}
@@ -178,7 +170,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                 </MenuButton>
                 <MenuList>
                   <MenuItem
-                    onClick={() => {}}
+                    onClick={() => navigate("/account")}
                     icon={<Icon as={IoPersonOutline} />}
                   >
                     My Account
@@ -188,6 +180,9 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                   </MenuItem>
                   <MenuItem onClick={() => {}} icon={<Icon as={FiBookmark} />}>
                     Saved Events
+                  </MenuItem>
+                  <MenuItem onClick={() => {}} icon={<Icon as={FiClipboard} />}>
+                    My Events
                   </MenuItem>
                   <MenuDivider />
                   <MenuItem onClick={() => {}} icon={<Icon as={FiSettings} />}>

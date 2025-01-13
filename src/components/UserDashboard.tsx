@@ -5,6 +5,7 @@ import {
   Avatar,
   VStack,
   useColorMode,
+  Button,
 } from "@chakra-ui/react";
 import { useState } from "react";
 import {
@@ -17,10 +18,8 @@ import {
 } from "react-icons/fi";
 import { IoPersonOutline } from "react-icons/io5";
 import Account from "./Account";
+import SavedEvents from "./SavedEvents";
 
-// Placeholder components for now
-// const Account = () => <Text>Account Component Placeholder</Text>;
-const SavedEvents = () => <Text>Saved Events Component Placeholder</Text>;
 const LikedEvents = () => <Text>Liked Events Component Placeholder</Text>;
 const MyEvents = () => <Text>My Events Component Placeholder</Text>;
 const Settings = () => <Text>Settings Component Placeholder</Text>;
@@ -62,10 +61,9 @@ const UserDashboard = () => {
           <Text fontSize="lg">EventLight</Text>
         </HStack>
         <Text fontSize="xl">Hi, Chiamaka</Text>
-        <HStack color="red.500">
+        <Button bg="none" rightIcon={<FiLogOut />} _hover={{ transform: "scale(1.06)" }} color="red.500">
           <Text fontSize="lg">Log Out</Text>
-          <FiLogOut />
-        </HStack>
+        </Button>
       </HStack>
 
       <HStack
@@ -84,6 +82,7 @@ const UserDashboard = () => {
           bg={colorMode === "dark" ? "gray.700" : "gray.50"} // Background color based on mode
           p={4}
           boxShadow="md"
+          cursor="pointer"
           //   fontWeight="400"
         >
           <HStack>

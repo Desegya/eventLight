@@ -22,12 +22,7 @@ import SavedEvents from "./SavedEvents";
 import LikedEvents from "./LikedEvents";
 import MyEvents from "./MyEvents";
 import Notifications from "./Notifications";
-
-
-
-const Settings = () => <Text>Settings Component Placeholder</Text>;
-const Logout = () => <Text>Logout Component Placeholder</Text>;
-
+import Settings from "./Settings";
 
 const UserDashboard = () => {
   const [selectedOption, setSelectedOption] = useState<string>("account"); // Default selected option
@@ -45,8 +40,6 @@ const UserDashboard = () => {
         return <MyEvents />;
       case "settings":
         return <Settings />;
-      case "logout":
-        return <Logout />;
       case "notifications":
         return <Notifications />;
       default:
@@ -64,7 +57,12 @@ const UserDashboard = () => {
           <Text fontSize="lg">EventLight</Text>
         </HStack>
         <Text fontSize="xl">Hi, Chiamaka</Text>
-        <Button bg="none" rightIcon={<FiLogOut />} _hover={{ transform: "scale(1.06)" }} color="red.500">
+        <Button
+          bg="none"
+          rightIcon={<FiLogOut />}
+          _hover={{ transform: "scale(1.06)" }}
+          color="red.500"
+        >
           <Text fontSize="lg">Log Out</Text>
         </Button>
       </HStack>

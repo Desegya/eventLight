@@ -20,9 +20,10 @@ import { IoPersonOutline } from "react-icons/io5";
 import Account from "./Account";
 import SavedEvents from "./SavedEvents";
 import LikedEvents from "./LikedEvents";
+import MyEvents from "./MyEvents";
 
 
-const MyEvents = () => <Text>My Events Component Placeholder</Text>;
+
 const Settings = () => <Text>Settings Component Placeholder</Text>;
 const Logout = () => <Text>Logout Component Placeholder</Text>;
 const Notifications = () => <Text>Notifications Component Placeholder</Text>;

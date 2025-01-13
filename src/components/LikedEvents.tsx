@@ -3,7 +3,7 @@ import { Box, Heading, Button, Text, useToast, SimpleGrid } from "@chakra-ui/rea
 import { useNavigate } from "react-router-dom";
 import EventCard from "./EventCard"; // Import the EventCard component
 
-const SavedEvents = () => {
+const LikedEvents = () => {
   const [savedEvents, setSavedEvents] = useState([
     {
       eventid: 1,
@@ -64,7 +64,7 @@ const SavedEvents = () => {
   return (
     <Box alignSelf="center" justifySelf="center">
       <Heading size="md" mb={6}>
-        Saved Events
+        Liked Events
       </Heading>
 
       {savedEvents.length > 0 ? (
@@ -88,7 +88,7 @@ const SavedEvents = () => {
       ) : (
         <Box textAlign="center" py={10}>
           <Text fontSize="xl" mb={4}>
-            You have no saved events yet.
+            You have no liked events yet.
           </Text>
           <Button
             colorScheme="blue"
@@ -102,4 +102,4 @@ const SavedEvents = () => {
   );
 };
 
-export default SavedEvents;
+export default LikedEvents;

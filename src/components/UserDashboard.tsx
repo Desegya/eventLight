@@ -19,8 +19,9 @@ import {
 import { IoPersonOutline } from "react-icons/io5";
 import Account from "./Account";
 import SavedEvents from "./SavedEvents";
+import LikedEvents from "./LikedEvents";
 
-const LikedEvents = () => <Text>Liked Events Component Placeholder</Text>;
+
 const MyEvents = () => <Text>My Events Component Placeholder</Text>;
 const Settings = () => <Text>Settings Component Placeholder</Text>;
 const Logout = () => <Text>Logout Component Placeholder</Text>;

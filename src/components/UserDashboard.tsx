@@ -21,12 +21,13 @@ import Account from "./Account";
 import SavedEvents from "./SavedEvents";
 import LikedEvents from "./LikedEvents";
 import MyEvents from "./MyEvents";
+import Notifications from "./Notifications";
 
 
 
 const Settings = () => <Text>Settings Component Placeholder</Text>;
 const Logout = () => <Text>Logout Component Placeholder</Text>;
-const Notifications = () => <Text>Notifications Component Placeholder</Text>;
+
 
 const UserDashboard = () => {
   const [selectedOption, setSelectedOption] = useState<string>("account"); // Default selected option

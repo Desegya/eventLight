@@ -23,14 +23,13 @@ import {
 } from "@chakra-ui/react";
 import {
   FiPlus,
-  FiSearch,
   FiLogIn,
   FiHeart,
   FiBookmark,
   FiSettings,
   FiLogOut,
   FiBell,
-  FiClipboard
+  FiClipboard,
 } from "react-icons/fi";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { IoCloseSharp, IoPersonOutline } from "react-icons/io5";
@@ -94,7 +93,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                   Add Events
                 </Button>
               </Link>
-              
+
               <Menu>
                 <MenuButton
                   display={{ base: "none", lg: "inline-flex" }}
@@ -253,6 +252,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                     <Box
                       as="a"
                       href="#"
+                      onClick={() => navigate("/account")}
                       color={isDark ? "blue.300" : "blue.800"}
                       fontWeight="bold"
                       _hover={{
@@ -261,12 +261,13 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                       display="flex"
                       alignItems="center"
                     >
-                      <Icon as={FiSearch} mr={2} />
-                      Find Events
+                      <Icon as={IoPersonOutline} mr={2} />
+                      My Account
                     </Box>
                     <Box
                       as="a"
                       href="#"
+                      onClick={() => navigate("/notifications")}
                       color={isDark ? "blue.300" : "blue.800"}
                       fontWeight="bold"
                       _hover={{
@@ -275,12 +276,14 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                       display="flex"
                       alignItems="center"
                     >
-                      <Icon as={FiHeart} mr={2} />
-                      Liked Events
+                      <Icon as={FiBell} mr={2} />
+                      Notifications
                     </Box>
+
                     <Box
                       as="a"
                       href="#"
+                      onClick={() => navigate("/saved-events")}
                       color={isDark ? "blue.300" : "blue.800"}
                       fontWeight="bold"
                       _hover={{
@@ -302,13 +305,31 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                       }}
                       display="flex"
                       alignItems="center"
+                      onClick={() => navigate("/liked-events")}
                     >
-                      <Icon as={FiBell} mr={2} />
-                      Notifications
+                      <Icon as={FiHeart} mr={2} />
+                      Liked Events
                     </Box>
                     <Box
                       as="a"
                       href="#"
+                      color={isDark ? "blue.300" : "blue.800"}
+                      fontWeight="bold"
+                      _hover={{
+                        color: isDark ? "blue.500" : "blue.600",
+                      }}
+                      display="flex"
+                      alignItems="center"
+                      onClick={() => navigate("/my-events")}
+                    >
+                      <Icon as={FiClipboard} mr={2} />
+                      My Events
+                    </Box>
+
+                    <Box
+                      as="a"
+                      href="#"
+                      onClick={() => navigate("/settings")}
                       color={isDark ? "blue.300" : "blue.800"}
                       fontWeight="bold"
                       _hover={{

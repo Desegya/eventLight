@@ -62,17 +62,17 @@ const LikedEvents = () => {
   };
 
   return (
-    <Box alignSelf="center" justifySelf="center">
-      <Heading size="md" mb={6}>
+    <Box p={4} alignSelf="center" justifySelf="center">
+      <Heading textAlign={{base: "center", md: "left"}} size="md" mb={6}>
         Liked Events
       </Heading>
 
       {savedEvents.length > 0 ? (
-        <SimpleGrid  spacing={6} columns={2} >
+        <SimpleGrid  spacing={6} columns={{base: 1, md: 2}} >
           {savedEvents.map((event) => (
             <Box key={event.eventid}>
               <EventCard
-                {...event} // Pass all event properties as props to EventCard
+                {...event} 
               />
               <Button
                 mt={2}

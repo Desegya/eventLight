@@ -96,6 +96,7 @@ const NotificationCard = ({
           </Tooltip>
           {/* See Details button */}
           <Button
+            display={{ base: "none", md: "block" }}
             size="sm"
             variant="link"
             onClick={() => onShowDetails(notification.id)}
@@ -107,10 +108,11 @@ const NotificationCard = ({
 
       {/* Expanded notification view */}
       {isExpanded && (
-        <Box mt={2} p={3} borderRadius="md" boxShadow="sm" w="100%">
+        <Box mt={2} borderRadius="md" w="100%">
           {/* Back Arrow Icon */}
           <HStack mb={3}>
             <IconButton
+              display={{ base: "none", md: "block" }}
               aria-label="Back"
               icon={<FiArrowLeft />}
               onClick={() => onShowDetails(notification.id)} // Collapse the notification
@@ -197,7 +199,12 @@ const Notifications = () => {
 
   return (
     <Box p={4}>
-      <Text fontSize="xl" fontWeight="bold" mb={4}>
+      <Text
+        fontSize="xl"
+        textAlign={{ base: "center", md: "left" }}
+        fontWeight="bold"
+        mb={4}
+      >
         Notifications
       </Text>
       <VStack spacing={4}>

@@ -67,7 +67,7 @@ const Account = () => {
   };
 
   return (
-    <Box>
+    <Box p={4}>
       <Flex justify="center" align="center">
         <Box borderRadius="lg" w="100%" maxW="800px">
           <Heading

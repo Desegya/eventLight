@@ -80,11 +80,10 @@ const UserDashboard = () => {
           fontSize="lg"
           gap="2rem"
           flex="0 0 30%"
-          bg={colorMode === "dark" ? "gray.700" : "gray.50"} // Background color based on mode
+          bg={colorMode === "dark" ? "gray.700" : "gray.50"}
           p={4}
           boxShadow="md"
           cursor="pointer"
-          //   fontWeight="400"
         >
           <HStack>
             <IoPersonOutline />

@@ -6,6 +6,11 @@ import AddEvent from "./components/AddEvent";
 import PreviewEvent from "./components/PreviewEvent";
 import Account from "./components/Account";
 import UserDashboard from "./components/UserDashboard";
+import LikedEvents from "./components/LikedEvents";
+import SavedEvents from "./components/SavedEvents";
+import MyEvents from "./components/MyEvents";
+import Notifications from "./components/Notifications";
+import Settings from "./components/Settings";
 
 const router = createBrowserRouter([
   {
@@ -21,15 +26,39 @@ const router = createBrowserRouter([
     element: <AddEvent />,
   },
   {
-    path: '/events/preview-event',
+    path: "/events/preview-event",
     element: <PreviewEvent />,
   },
   {
-    path: '/account',
+    path: "/account",
     element: <Account />,
   },
   {
-    path: '/acc',
+    path: "/liked-events",
+    element: <LikedEvents />,
+  },
+  {
+    path: "/saved-events",
+    element: <SavedEvents />,
+  },
+  {
+    path: "/liked-events",
+    element: <LikedEvents />,
+  },
+  {
+    path: "/my-events",
+    element: <MyEvents />,
+  },
+  {
+    path: "/notifications",
+    element: <Notifications />,
+  },
+  {
+    path: "/settings",
+    element: <Settings />,
+  },
+  {
+    path: "/acc",
     element: <UserDashboard />,
   },
 ]);

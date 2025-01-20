@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Box, Heading, Button, Text, useToast, SimpleGrid } from "@chakra-ui/react";
+import {
+  Box,
+  Heading,
+  Button,
+  Text,
+  useToast,
+  SimpleGrid,
+} from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import EventCard from "./EventCard"; // Import the EventCard component
 
@@ -26,25 +33,25 @@ const LikedEvents = () => {
       eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
     },
     {
-        eventid: 2,
-        eventName: "Christian Youth Conference",
-        eventDate: "2025-02-10",
-        eventLocation: "Faith Arena, Abuja",
-        eventCategory: "Conference",
-        eventOrganizer: "Faith Foundation",
-        eventPricing: "Paid",
-        eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-      },
-      {
-        eventid: 2,
-        eventName: "Christian Youth Conference",
-        eventDate: "2025-02-10",
-        eventLocation: "Faith Arena, Abuja",
-        eventCategory: "Conference",
-        eventOrganizer: "Faith Foundation",
-        eventPricing: "Paid",
-        eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-      },
+      eventid: 2,
+      eventName: "Christian Youth Conference",
+      eventDate: "2025-02-10",
+      eventLocation: "Faith Arena, Abuja",
+      eventCategory: "Conference",
+      eventOrganizer: "Faith Foundation",
+      eventPricing: "Paid",
+      eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
+    },
+    {
+      eventid: 2,
+      eventName: "Christian Youth Conference",
+      eventDate: "2025-02-10",
+      eventLocation: "Faith Arena, Abuja",
+      eventCategory: "Conference",
+      eventOrganizer: "Faith Foundation",
+      eventPricing: "Paid",
+      eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
+    },
   ]);
 
   const toast = useToast();
@@ -62,13 +69,13 @@ const LikedEvents = () => {
   };
 
   return (
-    <Box alignSelf="center" justifySelf="center">
-      <Heading size="md" mb={6}>
+    <Box p={4} alignSelf="center" justifySelf="center">
+      <Heading textAlign={{ base: "center", md: "left" }} size="md" mb={6}>
         My Events
       </Heading>
 
       {savedEvents.length > 0 ? (
-        <SimpleGrid  spacing={6} columns={2} >
+        <SimpleGrid spacing={6} columns={{ base: 1, md: 2 }}>
           {savedEvents.map((event) => (
             <Box key={event.eventid}>
               <EventCard
@@ -84,7 +91,7 @@ const LikedEvents = () => {
               </Button>
             </Box>
           ))}
-        </SimpleGrid >
+        </SimpleGrid>
       ) : (
         <Box textAlign="center" py={10}>
           <Text fontSize="xl" mb={4}>

@@ -61,6 +61,17 @@ const router = createBrowserRouter([
     path: "/acc",
     element: <UserDashboard />,
   },
+  {path: "/dashboard",
+    element: <UserDashboard />, // Dashboard layout
+    children: [
+      { path: "account", element: <Account /> },
+      { path: "saved-events", element: <SavedEvents /> },
+      { path: "liked-events", element: <LikedEvents /> },
+      { path: "my-events", element: <MyEvents /> },
+      { path: "notifications", element: <Notifications /> },
+      { path: "settings", element: <Settings /> },
+    ],
+  },
 ]);
 
 export default router;

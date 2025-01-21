@@ -57,10 +57,6 @@ const router = createBrowserRouter([
     path: "/settings",
     element: <Settings />,
   },
-  {
-    path: "/acc",
-    element: <UserDashboard />,
-  },
   {path: "/dashboard",
     element: <UserDashboard />, // Dashboard layout
     children: [

@@ -169,22 +169,22 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                 </MenuButton>
                 <MenuList>
                   <MenuItem
-                    onClick={() => navigate("/account")}
+                    onClick={() => navigate("/dashboard/account")}
                     icon={<Icon as={IoPersonOutline} />}
                   >
                     My Account
                   </MenuItem>
-                  <MenuItem onClick={() => {}} icon={<Icon as={FiHeart} />}>
+                  <MenuItem onClick={() => navigate("/dashboard/liked-events")} icon={<Icon as={FiHeart} />}>
                     Liked Events
                   </MenuItem>
-                  <MenuItem onClick={() => {}} icon={<Icon as={FiBookmark} />}>
+                  <MenuItem onClick={() => navigate("/dashboard/saved-events")} icon={<Icon as={FiBookmark} />}>
                     Saved Events
                   </MenuItem>
-                  <MenuItem onClick={() => {}} icon={<Icon as={FiClipboard} />}>
+                  <MenuItem onClick={() => navigate("/dashboard/my-events")} icon={<Icon as={FiClipboard} />}>
                     My Events
                   </MenuItem>
                   <MenuDivider />
-                  <MenuItem onClick={() => {}} icon={<Icon as={FiSettings} />}>
+                  <MenuItem onClick={() => navigate("/dashboard/settings")} icon={<Icon as={FiSettings} />}>
                     Settings
                   </MenuItem>
                   <MenuItem

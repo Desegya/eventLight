@@ -58,7 +58,7 @@ const router = createBrowserRouter([
     element: <Settings />,
   },
   {path: "/dashboard",
-    element: <UserDashboard />, // Dashboard layout
+    element: <UserDashboard />, 
     children: [
       { path: "account", element: <Account /> },
       { path: "saved-events", element: <SavedEvents /> },

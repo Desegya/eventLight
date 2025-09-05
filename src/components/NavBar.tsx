@@ -37,19 +37,33 @@ import logo from "../assets/logo.svg";
 import SearchInput from "./SearchInput";
 import ColorModeSwitch from "./ColorModeSwitch";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 interface Props {
   onSearch: (searchText: string) => void;
-  isAuthenticated: boolean; // Adding isAuthenticated prop to conditionally render content
-  onLogout: () => void; // A function to handle logging out
-  onLogin: () => void; // A function to handle logging in
 }
 
-const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
+const NavBar = ({ onSearch }: Props) => {
+  const { user, logout } = useAuth();
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
+
+  const isAuthenticated = !!user;
+
+  const handleLogin = () => {
+    navigate("/auth/login");
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   return (
     <Box
@@ -141,7 +155,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                 bg: isDark ? "blue.700" : "blue.50",
                 color: isDark ? "blue.500" : "blue.600",
               }}
-              onClick={onLogin}
+              onClick={handleLogin}
               leftIcon={<Icon as={FiLogIn} />}
             >
               Sign Up / Login
@@ -174,21 +188,33 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                   >
                     My Account
                   </MenuItem>
-                  <MenuItem onClick={() => navigate("/dashboard/liked-events")} icon={<Icon as={FiHeart} />}>
+                  <MenuItem
+                    onClick={() => navigate("/dashboard/liked-events")}
+                    icon={<Icon as={FiHeart} />}
+                  >
                     Liked Events
                   </MenuItem>
-                  <MenuItem onClick={() => navigate("/dashboard/saved-events")} icon={<Icon as={FiBookmark} />}>
+                  <MenuItem
+                    onClick={() => navigate("/dashboard/saved-events")}
+                    icon={<Icon as={FiBookmark} />}
+                  >
                     Saved Events
                   </MenuItem>
-                  <MenuItem onClick={() => navigate("/dashboard/my-events")} icon={<Icon as={FiClipboard} />}>
+                  <MenuItem
+                    onClick={() => navigate("/dashboard/my-events")}
+                    icon={<Icon as={FiClipboard} />}
+                  >
                     My Events
                   </MenuItem>
                   <MenuDivider />
-                  <MenuItem onClick={() => navigate("/dashboard/settings")} icon={<Icon as={FiSettings} />}>
+                  <MenuItem
+                    onClick={() => navigate("/dashboard/settings")}
+                    icon={<Icon as={FiSettings} />}
+                  >
                     Settings
                   </MenuItem>
                   <MenuItem
-                    onClick={onLogout}
+                    onClick={handleLogout}
                     icon={<Icon as={FiLogOut} />}
                     color="red"
                   >
@@ -226,7 +252,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                       }}
                       display="flex"
                       alignItems="center"
-                      onClick={onLogin}
+                      onClick={handleLogin}
                     >
                       <Icon as={FiLogIn} mr={2} />
                       Sign Up / Login
@@ -351,7 +377,7 @@ const NavBar = ({ onSearch, isAuthenticated, onLogout, onLogin }: Props) => {
                       }}
                       display="flex"
                       alignItems="center"
-                      onClick={onLogout}
+                      onClick={handleLogout}
                     >
                       <Icon as={FiLogOut} mr={2} />
                       Log Out

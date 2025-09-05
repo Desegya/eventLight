@@ -1,90 +1,82 @@
-import { useState } from "react";
-import { Box, Heading, Button, Text, useToast, SimpleGrid } from "@chakra-ui/react";
+import {
+  Box,
+  Heading,
+  Button,
+  Text,
+  useToast,
+  SimpleGrid,
+  Spinner,
+  Center,
+} from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import EventCard from "./EventCard"; // Import the EventCard component
+import EventCard from "./EventCard";
+import { useLikedEvents } from "../hooks/useUserEvents";
+import { useEventInteractions } from "../hooks/useEventInteractions";
+import { Event } from "../types/event";
 
 const LikedEvents = () => {
-  const [savedEvents, setSavedEvents] = useState([
-    {
-      eventid: 1,
-      eventName: "Gospel Worship Night",
-      eventDate: "2025-01-20",
-      eventLocation: "Victory Church, Lagos",
-      eventCategory: "Worship",
-      eventOrganizer: "Victory Church",
-      eventPricing: "Free",
-      eventImage: "http://dummyimage.com/200x100.png/cc0000/ffffff", // Replace with actual image URL
-    },
-    {
-      eventid: 2,
-      eventName: "Christian Youth Conference",
-      eventDate: "2025-02-10",
-      eventLocation: "Faith Arena, Abuja",
-      eventCategory: "Conference",
-      eventOrganizer: "Faith Foundation",
-      eventPricing: "Paid",
-      eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-    },
-    {
-        eventid: 2,
-        eventName: "Christian Youth Conference",
-        eventDate: "2025-02-10",
-        eventLocation: "Faith Arena, Abuja",
-        eventCategory: "Conference",
-        eventOrganizer: "Faith Foundation",
-        eventPricing: "Paid",
-        eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-      },
-      {
-        eventid: 2,
-        eventName: "Christian Youth Conference",
-        eventDate: "2025-02-10",
-        eventLocation: "Faith Arena, Abuja",
-        eventCategory: "Conference",
-        eventOrganizer: "Faith Foundation",
-        eventPricing: "Paid",
-        eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-      },
-  ]);
-
+  const { likedEvents, loading, error, removeFromLiked, updateEvent } = useLikedEvents();
+  const { toggleLike } = useEventInteractions();
   const toast = useToast();
   const navigate = useNavigate();
 
-  const handleRemoveEvent = (id: number) => {
-    setSavedEvents((prev) => prev.filter((event) => event.eventid !== id));
-    toast({
-      title: "Event Removed",
-      description: "The event has been removed from your saved list.",
-      status: "info",
-      duration: 3000,
-      isClosable: true,
-    });
+  const handleUnlikeEvent = async (event: Event) => {
+    try {
+      await toggleLike(event);
+      // Remove from local state
+      removeFromLiked(event.id);
+      toast({
+        title: "Event Unliked",
+        description: "Event removed from your liked list",
+        status: "info",
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      // Error is handled in the hook
+    }
   };
+
+  const handleRemoveEvent = (event: Event) => {
+    handleUnlikeEvent(event);
+  };
+
+  if (loading) {
+    return (
+      <Center h="200px">
+        <Spinner size="lg" />
+      </Center>
+    );
+  }
 
   return (
     <Box p={4} alignSelf="center" justifySelf="center">
-      <Heading textAlign={{base: "center", md: "left"}} size="md" mb={6}>
+      <Heading textAlign={{ base: "center", md: "left" }} size="md" mb={6}>
         Liked Events
       </Heading>
 
-      {savedEvents.length > 0 ? (
-        <SimpleGrid  spacing={6} columns={{base: 1, md: 2}} >
-          {savedEvents.map((event) => (
-            <Box key={event.eventid}>
+      {likedEvents.length > 0 ? (
+        <SimpleGrid spacing={6} columns={{ base: 1, md: 2 }}>
+          {likedEvents.map((event) => (
+            <Box key={event.id}>
               <EventCard
-                {...event} 
+                event={event}
+                onEventUpdate={(updatedEvent) => {
+                  // Update local state when event is updated
+                  updateEvent(updatedEvent);
+                }}
               />
               <Button
                 mt={2}
                 size="sm"
                 colorScheme="red"
-                onClick={() => handleRemoveEvent(event.eventid)}
+                onClick={() => handleRemoveEvent(event)}
               >
-                Remove Event
+                Unlike Event
               </Button>
             </Box>
           ))}
-        </SimpleGrid >
+        </SimpleGrid>
       ) : (
         <Box textAlign="center" py={10}>
           <Text fontSize="xl" mb={4}>

@@ -23,30 +23,44 @@ import {
   FaBookmark,
 } from "react-icons/fa";
 import { TbCurrencyNaira } from "react-icons/tb";
-import { Link } from "react-router-dom"; // Import Link component
+import { Link } from "react-router-dom";
+import { Event } from "../types/event";
+import { useEventInteractions } from "../hooks/useEventInteractions";
+import { useState } from "react";
 
 interface EventCardProps {
-  eventid: number; // Add eventid to the props
-  eventName: string;
-  eventDate: string;
-  eventLocation: string;
-  eventCategory: string;
-  eventOrganizer: string;
-  eventPricing: string;
-  eventImage: string;
+  event: Event;
+  onEventUpdate?: (updatedEvent: Event) => void;
 }
 
-const EventCard = ({
-  eventid,
-  eventName,
-  eventDate,
-  eventLocation,
-  eventCategory,
-  eventOrganizer,
-  eventPricing,
-  eventImage,
-}: EventCardProps) => {
-  const isFree = eventPricing.toLowerCase() === "free";
+const EventCard = ({ event, onEventUpdate }: EventCardProps) => {
+  const [localEvent, setLocalEvent] = useState(event);
+  const { toggleLike, toggleSave, isLikeLoading, isSaveLoading } =
+    useEventInteractions();
+
+  const isFree = event.pricing.toLowerCase() === "free";
+
+  const handleLike = async () => {
+    try {
+      await toggleLike(localEvent, (updated) => {
+        setLocalEvent(updated);
+        onEventUpdate?.(updated);
+      });
+    } catch (error) {
+      // Error is handled in the hook
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      await toggleSave(localEvent, (updated) => {
+        setLocalEvent(updated);
+        onEventUpdate?.(updated);
+      });
+    } catch (error) {
+      // Error is handled in the hook
+    }
+  };
 
   // Dark/Light mode values
   const cardBg = useColorModeValue("white", "gray.700");
@@ -69,24 +83,42 @@ const EventCard = ({
         _groupHover={{ display: "flex" }}
         zIndex="1"
       >
-        <Tooltip label="Like this event" fontSize="sm">
+        <Tooltip
+          label={localEvent.is_liked ? "Unlike this event" : "Like this event"}
+          fontSize="sm"
+        >
           <Box
             as="button"
             p={2}
             borderRadius="full"
             _hover={{ bg: hoverBg }}
+            onClick={handleLike}
+            disabled={isLikeLoading(localEvent.id)}
           >
-            <Icon as={FaHeart} boxSize={4} color={iconColor} />
+            <Icon
+              as={FaHeart}
+              boxSize={4}
+              color={localEvent.is_liked ? "red.500" : iconColor}
+            />
           </Box>
         </Tooltip>
-        <Tooltip label="Save this event" fontSize="sm">
+        <Tooltip
+          label={localEvent.is_saved ? "Unsave this event" : "Save this event"}
+          fontSize="sm"
+        >
           <Box
             as="button"
             p={2}
             borderRadius="full"
             _hover={{ bg: hoverBg }}
+            onClick={handleSave}
+            disabled={isSaveLoading(localEvent.id)}
           >
-            <Icon as={FaBookmark} boxSize={4} color={iconColor} />
+            <Icon
+              as={FaBookmark}
+              boxSize={4}
+              color={localEvent.is_saved ? "blue.500" : iconColor}
+            />
           </Box>
         </Tooltip>
       </HStack>
@@ -100,20 +132,28 @@ const EventCard = ({
         bg={cardBg}
         color={cardTextColor}
       >
-        <Image src={eventImage} alt={eventName} borderRadius="md" />
+        <Image
+          src={event.image || "/placeholder-image.jpg"}
+          alt={event.title}
+          borderRadius="md"
+        />
 
         <CardBody>
           <Stack spacing={4}>
             {/* Event Name with Pricing Button */}
             <HStack justifyContent="left" alignItems="center" gap={6}>
-              <Heading size="md">{eventName}</Heading>
+              <Heading size="md">{event.title}</Heading>
               <Button
                 size="xs"
                 bg={priceButtonBg}
                 color="white"
                 _hover={{ bg: priceButtonHover }}
                 leftIcon={
-                  isFree ? <Icon as={FaCheckCircle} /> : <Icon as={TbCurrencyNaira} />
+                  isFree ? (
+                    <Icon as={FaCheckCircle} />
+                  ) : (
+                    <Icon as={TbCurrencyNaira} />
+                  )
                 }
               >
                 {isFree ? "Free" : "Paid"}
@@ -124,12 +164,14 @@ const EventCard = ({
             <HStack spacing={4} color={detailColor}>
               <HStack spacing={2}>
                 <Icon as={FaCalendar} boxSize={4} />
-                <Text fontSize="sm">{eventDate}</Text>
+                <Text fontSize="sm">
+                  {new Date(event.date).toLocaleDateString()}
+                </Text>
               </HStack>
               <Divider orientation="vertical" />
               <HStack spacing={2}>
                 <Icon as={FaMapMarkerAlt} boxSize={4} />
-                <Text fontSize="sm">{eventLocation}</Text>
+                <Text fontSize="sm">{event.location}</Text>
               </HStack>
             </HStack>
 
@@ -137,19 +179,19 @@ const EventCard = ({
             <HStack spacing={4} color={detailColor}>
               <HStack spacing={2}>
                 <Icon as={FaTag} boxSize={4} />
-                <Text fontSize="sm">{eventCategory}</Text>
+                <Text fontSize="sm">{event.category}</Text>
               </HStack>
               <HStack spacing={2}>
                 <Icon as={FaUserAlt} boxSize={4} />
                 <Text fontSize="sm" isTruncated maxW="150px">
-                  {eventOrganizer}
+                  Organizer #{event.created_by}
                 </Text>
               </HStack>
             </HStack>
 
             {/* View Details Button - Using Link for Navigation */}
             <Box textAlign="center" w="100%">
-              <Link to={`/events/${eventid}`}>
+              <Link to={`/events/${event.id}`}>
                 <Button
                   bg="blue.800"
                   color="white"

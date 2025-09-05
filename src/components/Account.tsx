@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Flex,
@@ -16,40 +16,83 @@ import {
   MenuList,
   MenuItem,
   Icon,
+  useToast,
 } from "@chakra-ui/react";
 import { BiEdit, BiUser, BiPhone, BiCamera } from "react-icons/bi";
-
 import { FiMail } from "react-icons/fi";
-
-type UserInfo = {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  profilePicture: string;
-};
+import { useAuth } from "../contexts/AuthContext";
+import { ProfileUpdateData } from "../types/auth";
 
 const Account = () => {
-  const [userInfo, setUserInfo] = useState<UserInfo>({
-    name: "John Doe",
-    email: "johndoe@example.com",
-    phone: "123-456-7890",
-    address: "123 Main St, Cityville",
-    profilePicture: "",
-  });
-
+  const { user, updateProfile, loading } = useAuth();
+  const toast = useToast();
   const [editField, setEditField] = useState("");
+  const [formData, setFormData] = useState<ProfileUpdateData>({});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setUserInfo({ ...userInfo, [name]: value });
+  // Initialize form data when user data is available
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
+        phone_number: user.phone_number || "",
+        street_address: user.street_address || "",
+        city: user.city || "",
+        state: user.state || "",
+        country: user.country || "Nigeria",
+        preferred_categories: user.preferred_categories || [],
+        preferred_languages: user.preferred_languages || [],
+        preferred_age_groups: user.preferred_age_groups || [],
+        max_distance_km: user.max_distance_km,
+        email_notifications: user.email_notifications ?? true,
+        event_reminders: user.event_reminders ?? true,
+      });
+    }
+  }, [user]);
+
+  const handleInputChange = (field: keyof ProfileUpdateData, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleEdit = (field: string) => {
     setEditField(field);
   };
 
-  const handleSave = () => {
+  const handleSave = async (field: keyof ProfileUpdateData) => {
+    try {
+      const updateData = { [field]: formData[field] };
+      await updateProfile(updateData);
+      setEditField("");
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update profile. Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleCancel = () => {
+    // Reset form data to current user data
+    if (user) {
+      setFormData({
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
+        phone_number: user.phone_number || "",
+        street_address: user.street_address || "",
+        city: user.city || "",
+        state: user.state || "",
+        country: user.country || "Nigeria",
+        preferred_categories: user.preferred_categories || [],
+        preferred_languages: user.preferred_languages || [],
+        preferred_age_groups: user.preferred_age_groups || [],
+        max_distance_km: user.max_distance_km,
+        email_notifications: user.email_notifications ?? true,
+        event_reminders: user.event_reminders ?? true,
+      });
+    }
     setEditField("");
   };
 
@@ -62,9 +105,19 @@ const Account = () => {
   };
 
   const handleDeletePhoto = () => {
-    setUserInfo({ ...userInfo, profilePicture: "" });
     alert("Profile picture deleted.");
   };
+
+  if (!user) {
+    return (
+      <Box p={4} textAlign="center">
+        <Text>Please log in to view your account.</Text>
+      </Box>
+    );
+  }
+
+  const displayName =
+    `${user.first_name || ""} ${user.last_name || ""}`.trim() || "User";
 
   return (
     <Box p={4}>
@@ -92,8 +145,8 @@ const Account = () => {
               <Image
                 boxSize="200px"
                 // borderRadius="full"
-                src={userInfo.profilePicture || "https://picsum.photos/200/300"}
-                alt={userInfo.name}
+                src="https://picsum.photos/200/300"
+                alt={displayName}
                 mb={4}
                 objectFit="cover"
               />
@@ -133,30 +186,55 @@ const Account = () => {
               <VStack align="start" spacing={4}>
                 {[
                   {
-                    label: "Name",
-                    value: userInfo.name,
+                    label: "First Name",
+                    value: user.first_name || "Not provided",
                     icon: BiUser,
-                    field: "name",
+                    field: "first_name" as keyof ProfileUpdateData,
+                  },
+                  {
+                    label: "Last Name",
+                    value: user.last_name || "Not provided",
+                    icon: BiUser,
+                    field: "last_name" as keyof ProfileUpdateData,
                   },
                   {
                     label: "Email",
-                    value: userInfo.email,
+                    value: user.email,
                     icon: FiMail,
-                    field: "email",
+                    field: "email" as keyof ProfileUpdateData,
+                    readonly: true,
                   },
                   {
                     label: "Phone",
-                    value: userInfo.phone,
+                    value: user.phone_number || "Not provided",
                     icon: BiPhone,
-                    field: "phone",
+                    field: "phone_number" as keyof ProfileUpdateData,
                   },
                   {
-                    label: "Address",
-                    value: userInfo.address,
+                    label: "Street Address",
+                    value: user.street_address || "Not provided",
                     icon: BiUser,
-                    field: "address",
+                    field: "street_address" as keyof ProfileUpdateData,
                   },
-                ].map(({ label, value, icon, field }) => (
+                  {
+                    label: "City",
+                    value: user.city || "Not provided",
+                    icon: BiUser,
+                    field: "city" as keyof ProfileUpdateData,
+                  },
+                  {
+                    label: "State",
+                    value: user.state || "Not provided",
+                    icon: BiUser,
+                    field: "state" as keyof ProfileUpdateData,
+                  },
+                  {
+                    label: "Country",
+                    value: user.country || "Nigeria",
+                    icon: BiUser,
+                    field: "country" as keyof ProfileUpdateData,
+                  },
+                ].map(({ label, value, icon, field, readonly }) => (
                   <HStack
                     key={field}
                     w="100%"
@@ -166,26 +244,47 @@ const Account = () => {
                   >
                     <Box as={icon} fontSize="xl" />
                     {editField === field ? (
-                      <FormControl>
+                      <FormControl flex="1">
                         <FormLabel srOnly>{label}</FormLabel>
-                        <Input
-                          name={field}
-                          value={userInfo[field as keyof UserInfo]}
-                          onChange={handleChange}
-                          onBlur={handleSave}
-                        />
+                        <HStack>
+                          <Input
+                            value={(formData[field] as string) || ""}
+                            onChange={(e) =>
+                              handleInputChange(field, e.target.value)
+                            }
+                            placeholder={label}
+                          />
+                          <Button
+                            size="sm"
+                            colorScheme="green"
+                            onClick={() => handleSave(field)}
+                            isLoading={loading}
+                          >
+                            Save
+                          </Button>
+                          <Button size="sm" onClick={handleCancel}>
+                            Cancel
+                          </Button>
+                        </HStack>
                       </FormControl>
                     ) : (
                       <>
-                        <Text flex="1" wordBreak="break-word">
-                          {value}
-                        </Text>
-                        <Button
-                          leftIcon={<BiEdit />}
-                          size="sm"
-                          onClick={() => handleEdit(field)}
-                          bg="none"
-                        ></Button>
+                        <VStack align="start" flex="1" spacing={0}>
+                          <Text fontSize="sm" color="gray.500">
+                            {label}
+                          </Text>
+                          <Text wordBreak="break-word">{value}</Text>
+                        </VStack>
+                        {!readonly && (
+                          <Button
+                            leftIcon={<BiEdit />}
+                            size="sm"
+                            onClick={() => handleEdit(field)}
+                            bg="none"
+                          >
+                            Edit
+                          </Button>
+                        )}
                       </>
                     )}
                   </HStack>

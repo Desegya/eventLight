@@ -11,6 +11,10 @@ import SavedEvents from "./components/SavedEvents";
 import MyEvents from "./components/MyEvents";
 import Notifications from "./components/Notifications";
 import Settings from "./components/Settings";
+import ApiTest from "./components/ApiTest";
+import Login from "./components/Login";
+import Register from "./components/Register";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -23,42 +27,87 @@ const router = createBrowserRouter([
   },
   {
     path: "/events/add-event",
-    element: <AddEvent />,
+    element: (
+      <ProtectedRoute>
+        <AddEvent />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/events/preview-event",
-    element: <PreviewEvent />,
+    element: (
+      <ProtectedRoute>
+        <PreviewEvent />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/auth/login",
+    element: <Login />,
+  },
+  {
+    path: "/auth/register",
+    element: <Register />,
   },
   {
     path: "/account",
-    element: <Account />,
+    element: (
+      <ProtectedRoute>
+        <Account />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/liked-events",
-    element: <LikedEvents />,
+    element: (
+      <ProtectedRoute>
+        <LikedEvents />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/saved-events",
-    element: <SavedEvents />,
-  },
-  {
-    path: "/liked-events",
-    element: <LikedEvents />,
+    element: (
+      <ProtectedRoute>
+        <SavedEvents />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/my-events",
-    element: <MyEvents />,
+    element: (
+      <ProtectedRoute>
+        <MyEvents />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/notifications",
-    element: <Notifications />,
+    element: (
+      <ProtectedRoute>
+        <Notifications />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/settings",
-    element: <Settings />,
+    element: (
+      <ProtectedRoute>
+        <Settings />
+      </ProtectedRoute>
+    ),
   },
-  {path: "/dashboard",
-    element: <UserDashboard />, 
+  {
+    path: "/api-test",
+    element: <ApiTest />,
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute>
+        <UserDashboard />
+      </ProtectedRoute>
+    ),
     children: [
       { path: "account", element: <Account /> },
       { path: "saved-events", element: <SavedEvents /> },

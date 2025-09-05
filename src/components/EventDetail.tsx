@@ -17,6 +17,8 @@ import {
   Tr,
   Td,
   SimpleGrid,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
 import {
   FaArrowLeft,
@@ -26,12 +28,15 @@ import {
   FaUsers,
   FaDollarSign,
   FaLink,
+  FaCalendarAlt,
+  FaLanguage,
+  FaChild,
 } from "react-icons/fa";
 import { CiBookmark } from "react-icons/ci";
 import { IoHeartOutline, IoShareSocialOutline } from "react-icons/io5";
 import { MdOutlineTimer } from "react-icons/md";
-import eventData from "../data/events.json";
-import { parse, format } from "date-fns";
+import { useEvent } from "../hooks/useEvents";
+import { format, parseISO } from "date-fns";
 
 const EventDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,56 +45,44 @@ const EventDetail = () => {
   const detailColor = useColorModeValue("gray.700", "gray.500");
   const detailBorderColor = useColorModeValue("gray.500", "blue.800");
 
-  interface Event {
-    eventid: number;
-    eventName: string;
-    eventImage: string;
-    eventDate: string;
-    eventLocation: string;
-    eventCategory: string;
-    eventOrganizer: string;
-    eventPricing: string;
-    eventDescription: string;
-  }
-
-  const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const eventId = id ? parseInt(id) : 0;
+  const { event, loading, error } = useEvent(eventId);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
 
   useEffect(() => {
-    setLoading(true);
-    const selectedEvent = eventData.find(
-      (event) => id && event.eventid === parseInt(id)
-    );
-    if (selectedEvent) {
-      setEvent(selectedEvent);
-    } else {
-      setEvent(null);
+    if (event?.date) {
+      const eventDate = parseISO(event.date);
+
+      if (eventDate && !isNaN(eventDate.getTime())) {
+        const now = new Date();
+        setTimeRemaining(eventDate.getTime() - now.getTime());
+
+        const interval = setInterval(() => {
+          setTimeRemaining(eventDate.getTime() - new Date().getTime());
+        }, 1000);
+
+        return () => clearInterval(interval);
+      } else {
+        setTimeRemaining(0);
+      }
     }
-    setLoading(false);
-
-    const eventDate = selectedEvent?.eventDate
-      ? parse(selectedEvent.eventDate, "dd.MM.yyyy", new Date())
-      : null;
-
-    if (eventDate && !isNaN(eventDate.getTime())) {
-      const now = new Date();
-      setTimeRemaining(eventDate.getTime() - now.getTime());
-
-      const interval = setInterval(() => {
-        setTimeRemaining(eventDate.getTime() - new Date().getTime());
-      }, 1000);
-
-      return () => clearInterval(interval);
-    } else {
-      setTimeRemaining(0);
-    }
-  }, [id]);
+  }, [event]);
 
   if (loading) {
     return (
       <Box p={6} textAlign="center">
         <Spinner size="xl" />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box p={4} textAlign="center">
+        <Alert status="error">
+          <AlertIcon />
+          {error}
+        </Alert>
       </Box>
     );
   }
@@ -105,7 +98,7 @@ const EventDetail = () => {
     );
   }
 
-  const parsedDate = parse(event.eventDate, "dd.MM.yyyy", new Date());
+  const parsedDate = parseISO(event.date);
   const formattedDate = format(parsedDate, "EEEE, dd MMMM yyyy");
 
   const days = Math.floor(timeRemaining / (1000 * 3600 * 24));
@@ -115,12 +108,8 @@ const EventDetail = () => {
   const minutes = Math.floor((timeRemaining % (1000 * 3600)) / (1000 * 60));
   const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
 
-  const relatedEvents = eventData
-    .filter(
-      (e) =>
-        e.eventCategory === event.eventCategory && e.eventid !== event.eventid
-    )
-    .slice(0, 2); // Show only 2 related events
+  // For now, we'll use empty array for related events since we need to implement category filtering in the API
+  const relatedEvents: any[] = [];
 
   return (
     <Box p={6}>
@@ -142,8 +131,10 @@ const EventDetail = () => {
         <Box flex="1">
           {/* Event Image */}
           <Image
-            src={event.eventImage}
-            alt={event.eventName}
+            src={
+              event.image || "http://dummyimage.com/200x100.png/cc0000/ffffff"
+            }
+            alt={event.title}
             borderRadius="md"
             mb={6}
             width="100%"
@@ -164,7 +155,7 @@ const EventDetail = () => {
             gap={4}
           >
             <Heading fontSize={{ base: "2xl", md: "4xl" }} mb={4}>
-              {event.eventName}
+              {event.title}
             </Heading>
 
             <Box>
@@ -247,14 +238,14 @@ const EventDetail = () => {
                       fontSize="lg"
                       color="gray.600"
                       onClick={() =>
-                        navigate(`/category-events/${event.eventCategory}`)
+                        navigate(`/category-events/${event.category}`)
                       }
                       _hover={{
                         color: "blue.600",
                         cursor: "pointer",
                       }}
                     >
-                      {event.eventCategory}
+                      {event.category}
                     </Text>
                   </Td>
                 </Tr>
@@ -272,14 +263,14 @@ const EventDetail = () => {
                       fontSize="lg"
                       color="gray.600"
                       onClick={() =>
-                        navigate(`/organizer-events/${event.eventOrganizer}`)
+                        navigate(`/organizer-events/${event.created_by}`)
                       }
                       _hover={{
                         color: "blue.600",
                         cursor: "pointer",
                       }}
                     >
-                      {event.eventOrganizer}
+                      User {event.created_by}
                     </Text>
                   </Td>
                 </Tr>
@@ -297,14 +288,64 @@ const EventDetail = () => {
                       fontSize="lg"
                       color="gray.600"
                       onClick={() =>
-                        navigate(`/organizer-events/${event.eventPricing}`)
+                        navigate(`/pricing-events/${event.pricing}`)
                       }
                       _hover={{
                         color: "blue.600",
                         cursor: "pointer",
                       }}
                     >
-                      {event.eventPricing}
+                      {event.pricing}
+                    </Text>
+                  </Td>
+                </Tr>
+
+                {/* Event Type Row */}
+                <Tr>
+                  <Td fontWeight="bold" color="gray.600" fontSize="lg" px={0}>
+                    <Flex align="center">
+                      <Icon as={FaCalendarAlt} mr={2} />
+                      Event Type:
+                    </Flex>
+                  </Td>
+                  <Td>
+                    <Text fontSize="lg" color="gray.600">
+                      {event.event_type
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </Text>
+                  </Td>
+                </Tr>
+
+                {/* Language Row */}
+                <Tr>
+                  <Td fontWeight="bold" color="gray.600" fontSize="lg" px={0}>
+                    <Flex align="center">
+                      <Icon as={FaLanguage} mr={2} />
+                      Language:
+                    </Flex>
+                  </Td>
+                  <Td>
+                    <Text fontSize="lg" color="gray.600">
+                      {event.language.charAt(0).toUpperCase() +
+                        event.language.slice(1)}
+                    </Text>
+                  </Td>
+                </Tr>
+
+                {/* Age Group Row */}
+                <Tr>
+                  <Td fontWeight="bold" color="gray.600" fontSize="lg" px={0}>
+                    <Flex align="center">
+                      <Icon as={FaChild} mr={2} />
+                      Age Group:
+                    </Flex>
+                  </Td>
+                  <Td>
+                    <Text fontSize="lg" color="gray.600">
+                      {event.age_group
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
                     </Text>
                   </Td>
                 </Tr>
@@ -314,7 +355,7 @@ const EventDetail = () => {
 
           {/* Event Description */}
           <Text mb={6} fontSize="lg" lineHeight="1.6">
-            {event.eventDescription}
+            {event.description}
           </Text>
         </Box>
 
@@ -400,7 +441,7 @@ const EventDetail = () => {
                   transition: "transform 0.3s ease",
                 },
               }}
-              onClick={() => navigate(`/related-events/${event.eventCategory}`)}
+              onClick={() => navigate(`/related-events/${event.category}`)}
             >
               See More
             </Button>

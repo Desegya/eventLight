@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Box,
   Heading,
@@ -6,67 +5,47 @@ import {
   Text,
   useToast,
   SimpleGrid,
+  Spinner,
+  Center,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import EventCard from "./EventCard"; // Import the EventCard component
+import EventCard from "./EventCard";
+import { useSavedEvents } from "../hooks/useUserEvents";
+import { useEventInteractions } from "../hooks/useEventInteractions";
+import { Event } from "../types/event";
 
 const SavedEvents = () => {
-  const [savedEvents, setSavedEvents] = useState([
-    {
-      eventid: 1,
-      eventName: "Gospel Worship Night",
-      eventDate: "2025-01-20",
-      eventLocation: "Victory Church, Lagos",
-      eventCategory: "Worship",
-      eventOrganizer: "Victory Church",
-      eventPricing: "Free",
-      eventImage: "http://dummyimage.com/200x100.png/cc0000/ffffff", // Replace with actual image URL
-    },
-    {
-      eventid: 2,
-      eventName: "Christian Youth Conference",
-      eventDate: "2025-02-10",
-      eventLocation: "Faith Arena, Abuja",
-      eventCategory: "Conference",
-      eventOrganizer: "Faith Foundation",
-      eventPricing: "Paid",
-      eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-    },
-    {
-      eventid: 2,
-      eventName: "Christian Youth Conference",
-      eventDate: "2025-02-10",
-      eventLocation: "Faith Arena, Abuja",
-      eventCategory: "Conference",
-      eventOrganizer: "Faith Foundation",
-      eventPricing: "Paid",
-      eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-    },
-    {
-      eventid: 2,
-      eventName: "Christian Youth Conference",
-      eventDate: "2025-02-10",
-      eventLocation: "Faith Arena, Abuja",
-      eventCategory: "Conference",
-      eventOrganizer: "Faith Foundation",
-      eventPricing: "Paid",
-      eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-    },
-  ]);
-
+  const { savedEvents, loading } = useSavedEvents();
+  const { toggleSave } = useEventInteractions();
   const toast = useToast();
   const navigate = useNavigate();
 
-  const handleRemoveEvent = (id: number) => {
-    setSavedEvents((prev) => prev.filter((event) => event.eventid !== id));
-    toast({
-      title: "Event Removed",
-      description: "The event has been removed from your saved list.",
-      status: "info",
-      duration: 3000,
-      isClosable: true,
-    });
+  const handleUnsaveEvent = async (event: Event) => {
+    try {
+      await toggleSave(event);
+      toast({
+        title: "Event Unsaved",
+        description: "Event removed from your saved list",
+        status: "info",
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      // Error is handled in the hook
+    }
   };
+
+  const handleRemoveEvent = (event: Event) => {
+    handleUnsaveEvent(event);
+  };
+
+  if (loading) {
+    return (
+      <Center h="200px">
+        <Spinner size="lg" />
+      </Center>
+    );
+  }
 
   return (
     <Box p={4} alignSelf="center" justifySelf="center">
@@ -77,17 +56,21 @@ const SavedEvents = () => {
       {savedEvents.length > 0 ? (
         <SimpleGrid spacing={6} columns={{ base: 1, md: 2 }}>
           {savedEvents.map((event) => (
-            <Box key={event.eventid}>
+            <Box key={event.id}>
               <EventCard
-                {...event} // Pass all event properties as props to EventCard
+                event={event}
+                onEventUpdate={() => {
+                  // Event updates are handled by the hook itself
+                  // This callback is mainly for refreshing data if needed
+                }}
               />
               <Button
                 mt={2}
                 size="sm"
                 colorScheme="red"
-                onClick={() => handleRemoveEvent(event.eventid)}
+                onClick={() => handleRemoveEvent(event)}
               >
-                Remove Event
+                Unsave Event
               </Button>
             </Box>
           ))}

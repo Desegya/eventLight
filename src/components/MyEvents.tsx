@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Box,
   Heading,
@@ -6,86 +5,61 @@ import {
   Text,
   useToast,
   SimpleGrid,
+  Spinner,
+  Center,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import EventCard from "./EventCard"; // Import the EventCard component
+import EventCard from "./EventCard";
+import { useMyEvents } from "../hooks/useUserEvents";
 
-const LikedEvents = () => {
-  const [savedEvents, setSavedEvents] = useState([
-    {
-      eventid: 1,
-      eventName: "Gospel Worship Night",
-      eventDate: "2025-01-20",
-      eventLocation: "Victory Church, Lagos",
-      eventCategory: "Worship",
-      eventOrganizer: "Victory Church",
-      eventPricing: "Free",
-      eventImage: "http://dummyimage.com/200x100.png/cc0000/ffffff", // Replace with actual image URL
-    },
-    {
-      eventid: 2,
-      eventName: "Christian Youth Conference",
-      eventDate: "2025-02-10",
-      eventLocation: "Faith Arena, Abuja",
-      eventCategory: "Conference",
-      eventOrganizer: "Faith Foundation",
-      eventPricing: "Paid",
-      eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-    },
-    {
-      eventid: 2,
-      eventName: "Christian Youth Conference",
-      eventDate: "2025-02-10",
-      eventLocation: "Faith Arena, Abuja",
-      eventCategory: "Conference",
-      eventOrganizer: "Faith Foundation",
-      eventPricing: "Paid",
-      eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-    },
-    {
-      eventid: 2,
-      eventName: "Christian Youth Conference",
-      eventDate: "2025-02-10",
-      eventLocation: "Faith Arena, Abuja",
-      eventCategory: "Conference",
-      eventOrganizer: "Faith Foundation",
-      eventPricing: "Paid",
-      eventImage: "http://dummyimage.com/200x100.png/cc0000/dddddd", // Replace with actual image URL
-    },
-  ]);
-
+const MyEvents = () => {
+  const { myEvents, loading } = useMyEvents();
   const toast = useToast();
   const navigate = useNavigate();
 
-  const handleRemoveEvent = (id: number) => {
-    setSavedEvents((prev) => prev.filter((event) => event.eventid !== id));
+  const handleDeleteEvent = async () => {
+    // TODO: Implement delete functionality when API endpoint is available
     toast({
-      title: "Event Removed",
-      description: "The event has been removed from your saved list.",
+      title: "Delete functionality",
+      description: "Delete event feature coming soon",
       status: "info",
-      duration: 3000,
+      duration: 2000,
       isClosable: true,
     });
   };
 
+  const handleEventUpdate = () => {
+    // Event updates are handled by the hook itself
+    // This callback is mainly for refreshing data if needed
+  };
+
+  if (loading) {
+    return (
+      <Center h="200px">
+        <Spinner size="lg" />
+      </Center>
+    );
+  }
+
   return (
     <Box p={4} alignSelf="center" justifySelf="center">
-      <Heading textAlign={{ base: "center", md: "left" }} size="md" mb={6}>
+      <Heading size="md" mb={6}>
         My Events
       </Heading>
 
-      {savedEvents.length > 0 ? (
+      {myEvents.length > 0 ? (
         <SimpleGrid spacing={6} columns={{ base: 1, md: 2 }}>
-          {savedEvents.map((event) => (
-            <Box key={event.eventid}>
+          {myEvents.map((event) => (
+            <Box key={event.id}>
               <EventCard
-                {...event} // Pass all event properties as props to EventCard
+                event={event}
+                onEventUpdate={handleEventUpdate}
               />
               <Button
                 mt={2}
                 size="sm"
                 colorScheme="red"
-                onClick={() => handleRemoveEvent(event.eventid)}
+                onClick={() => handleDeleteEvent()}
               >
                 Delete Event
               </Button>
@@ -95,13 +69,13 @@ const LikedEvents = () => {
       ) : (
         <Box textAlign="center" py={10}>
           <Text fontSize="xl" mb={4}>
-            You will see events you have created here
+            You haven't created any events yet.
           </Text>
           <Button
             colorScheme="blue"
-            onClick={() => navigate("/")} // Redirect to the events listing page
+            onClick={() => navigate("/add-event")}
           >
-            Discover Events
+            Create Your First Event
           </Button>
         </Box>
       )}
@@ -109,4 +83,4 @@ const LikedEvents = () => {
   );
 };
 
-export default LikedEvents;
+export default MyEvents;

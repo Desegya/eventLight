@@ -1,22 +1,9 @@
 import { Grid, GridItem } from "@chakra-ui/react";
 import NavBar from "./NavBar";
-
 import SideBar from "./SideBar";
 import EventGrid from "./EventGrid";
-import { useState } from "react";
 
 const Welcome = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  // Function to simulate logging in
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
-
-  // Function to simulate logging out
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
   return (
     <Grid
       templateAreas={{
@@ -30,7 +17,7 @@ const Welcome = () => {
       }}
     >
       <GridItem area="nav" w="100%">
-        <NavBar onSearch={(searchText: string) => console.log(searchText)} isAuthenticated={isAuthenticated} onLogout={handleLogout} onLogin={handleLogin} />
+        <NavBar onSearch={(searchText: string) => console.log(searchText)} />
       </GridItem>
       <GridItem area="aside">
         <SideBar

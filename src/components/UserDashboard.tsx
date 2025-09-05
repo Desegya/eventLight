@@ -7,29 +7,50 @@ import {
   useColorMode,
   Button,
 } from "@chakra-ui/react";
-import { FiBell, FiBookmark, FiClipboard, FiHeart, FiLogOut, FiSettings } from "react-icons/fi";
+import {
+  FiBell,
+  FiBookmark,
+  FiClipboard,
+  FiHeart,
+  FiLogOut,
+  FiSettings,
+} from "react-icons/fi";
 import { IoPersonOutline } from "react-icons/io5";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const UserDashboard = () => {
   const { colorMode } = useColorMode();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    // Implement logout functionality
-    console.log("Logged out");
-    navigate("/login"); // Redirect to login page
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/", { replace: true }); // Redirect to home page
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Even if logout fails, redirect to home
+      navigate("/", { replace: true });
+    }
   };
 
   return (
     <Box display="flex" flexDirection="column" height="100vh">
       {/* Top Header with Logo and Greeting */}
       <HStack p={4} fontWeight="bold" gap="100px" justify="space-between">
-        <HStack>
+        <HStack
+          cursor="pointer"
+          onClick={() => navigate("/")}
+          _hover={{ transform: "scale(1.02)" }}
+          transition="transform 0.2s"
+        >
           <Avatar name="Logo" size="sm" src="logo-url" /> {/* Add your logo */}
           <Text fontSize="lg">EventLight</Text>
         </HStack>
-        <Text fontSize="xl">Hi, Chiamaka</Text>
+        <Text fontSize="xl">
+          Hi, {user?.first_name || user?.email?.split("@")[0] || "User"}
+        </Text>
         <Button
           bg="none"
           rightIcon={<FiLogOut />}
@@ -41,7 +62,12 @@ const UserDashboard = () => {
         </Button>
       </HStack>
 
-      <HStack h="100vh" align="flex-start" justifyContent="space-around" p="30px">
+      <HStack
+        h="100vh"
+        align="flex-start"
+        justifyContent="space-around"
+        p="30px"
+      >
         {/* Sidebar Navigation */}
         <VStack
           borderRadius=".5rem"

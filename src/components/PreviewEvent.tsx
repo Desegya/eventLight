@@ -1,22 +1,14 @@
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { Box, Button, Heading, Text, useToast } from "@chakra-ui/react";
 import EventCard from "./EventCard";
+import { Event } from "../types/event";
 
 const PreviewEvent = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const toast = useToast();
 
-  const eventData = location.state as {
-    eventid: number;
-    eventName: string;
-    eventDate: string;
-    eventLocation: string;
-    eventCategory: string;
-    eventOrganizer: string;
-    eventPricing: string;
-    eventImage: string;
-  };
+  const eventData = location.state as Event;
 
   const handleSubmit = () => {
     // Simulate an API call or submission process
@@ -49,16 +41,7 @@ const PreviewEvent = () => {
       </Box>
 
       {/* EventCard */}
-      <EventCard
-        eventid={eventData.eventid}
-        eventName={eventData.eventName}
-        eventDate={eventData.eventDate}
-        eventLocation={eventData.eventLocation}
-        eventCategory={eventData.eventCategory}
-        eventOrganizer={eventData.eventOrganizer}
-        eventPricing={eventData.eventPricing}
-        eventImage={eventData.eventImage}
-      />
+      <EventCard event={eventData} />
 
       {/* Buttons Section */}
       <Box mt={6}>

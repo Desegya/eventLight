@@ -1,44 +1,43 @@
-# EventLight Backend Requirements
+# EventLight — Backend API Contract
 
-This document describes the backend contract required by the current EventLight frontend. It is based on the API calls, TypeScript types, forms, hooks, and components already wired in the React app.
+This document describes the complete API contract required by the EventLight frontend. Any backend that satisfies this spec will work; the reference implementation uses Django REST Framework.
 
-The frontend expects a backend API at:
+The frontend expects the API at the URL set by `VITE_API_URL` (default: `http://localhost:8000/api`).
 
-```text
-http://localhost:8000/api
-```
+---
 
-The backend is assumed to be Django/Django REST Framework, but any backend can work if it matches this contract.
+## Table of Contents
 
-## Core Requirements
+1. [Authentication](#authentication)
+2. [User Shape](#user-shape)
+3. [Auth Endpoints](#auth-endpoints)
+4. [Event Shape](#event-shape)
+5. [Event Value Enumerations](#event-value-enumerations)
+6. [Event Endpoints](#event-endpoints)
+7. [Like & Save Endpoints](#like--save-endpoints)
+8. [Error Responses](#error-responses)
+9. [CORS & Development](#cors--development)
+10. [Recommended Data Models](#recommended-data-models)
+11. [Suggested Build Order](#suggested-build-order)
+12. [Unimplemented Features](#unimplemented-features)
 
-The backend needs to support:
-
-- User registration, login, logout, and token authentication
-- Current user profile retrieval and update
-- Password change and password reset endpoints
-- Event list, detail, create, update, and delete
-- Event image upload
-- Event like/unlike toggling
-- Event save/unsave toggling
-- User-specific liked, saved, and created event lists
-- CORS access from the Vite frontend
+---
 
 ## Authentication
 
-The frontend stores the auth token in `localStorage` as `authToken`.
+The frontend stores the auth token in `localStorage` under the key `authToken`.
 
-All authenticated requests send:
+Every authenticated request sends:
 
-```http
+```
 Authorization: Token <token>
 ```
 
 Use DRF `TokenAuthentication` if building with Django REST Framework.
 
-## User Shape
+---
 
-The frontend expects the current user response to contain:
+## User Shape
 
 ```json
 {
@@ -60,16 +59,15 @@ The frontend expects the current user response to contain:
 }
 ```
 
+---
+
 ## Auth Endpoints
 
-### Register
+### `POST /api/auth/register/`
 
-```http
-POST /api/auth/register/
-```
+**Public.**
 
 Request:
-
 ```json
 {
   "email": "user@example.com",
@@ -81,23 +79,19 @@ Request:
 ```
 
 Response:
-
 ```json
-{
-  "key": "token_string"
-}
+{ "key": "token_string" }
 ```
 
-The response may also include `user`, but the frontend immediately calls `GET /api/auth/user/` after registration.
+The frontend immediately calls `GET /api/auth/user/` after receiving the token.
 
-### Login
+---
 
-```http
-POST /api/auth/login/
-```
+### `POST /api/auth/login/`
+
+**Public.**
 
 Request:
-
 ```json
 {
   "email": "user@example.com",
@@ -106,157 +100,122 @@ Request:
 ```
 
 Response:
+```json
+{ "key": "token_string" }
+```
+
+The frontend immediately calls `GET /api/auth/user/` after receiving the token.
+
+---
+
+### `POST /api/auth/logout/`
+
+**Requires authentication.**
+
+Return JSON (not an empty 204) because the frontend calls `response.json()`:
 
 ```json
-{
-  "key": "token_string"
-}
+{ "detail": "Logged out successfully." }
 ```
 
-The response may also include `user`, but the frontend immediately calls `GET /api/auth/user/` after login.
+---
 
-### Logout
+### `GET /api/auth/user/`
 
-```http
-POST /api/auth/logout/
-```
+**Requires authentication.**
 
-Requires authentication.
+Response: full user object (see [User Shape](#user-shape)).
 
-Return JSON, not an empty 204 response, because the frontend request helper calls `response.json()`.
+---
 
-Response:
+### `PATCH /api/auth/user/`
 
+**Requires authentication.**
+
+Request: any subset of the user fields:
 ```json
 {
-  "detail": "Logged out successfully."
-}
-```
-
-### Current User
-
-```http
-GET /api/auth/user/
-```
-
-Requires authentication.
-
-Response: full user object.
-
-### Update Current User
-
-```http
-PATCH /api/auth/user/
-```
-
-Requires authentication.
-
-Request may contain any subset of:
-
-```json
-{
-  "first_name": "John",
-  "last_name": "Doe",
+  "first_name": "Jane",
   "phone_number": "08012345678",
-  "street_address": "123 Example Street",
   "city": "Lagos",
-  "state": "Lagos",
-  "country": "Nigeria",
-  "preferred_categories": ["worship", "music"],
-  "preferred_languages": ["english", "yoruba"],
+  "preferred_categories": ["music", "worship"],
+  "preferred_languages": ["english"],
   "preferred_age_groups": ["young_adults"],
   "max_distance_km": 50,
   "email_notifications": true,
-  "event_reminders": true
+  "event_reminders": false
 }
 ```
 
-Response: full updated user object.
+Response: updated full user object.
 
-### Change Password
+---
 
-```http
-POST /api/auth/password/change/
-```
+### `POST /api/auth/password/change/`
 
-Requires authentication.
-
-Request:
+**Requires authentication.**
 
 ```json
 {
-  "old_password": "oldpass",
+  "old_password": "current",
   "new_password1": "newpass123",
   "new_password2": "newpass123"
 }
 ```
 
 Response:
-
 ```json
-{
-  "detail": "Password changed successfully."
-}
+{ "detail": "Password changed successfully." }
 ```
 
-### Password Reset
+---
 
-```http
-POST /api/auth/password/reset/
-```
+### `POST /api/auth/password/reset/`
 
-Request:
+**Public.**
 
 ```json
-{
-  "email": "user@example.com"
-}
+{ "email": "user@example.com" }
 ```
 
 Response:
+```json
+{ "detail": "Password reset email sent." }
+```
+
+---
+
+### `POST /api/auth/password/reset/confirm/`
+
+**Public.**
 
 ```json
 {
-  "detail": "Password reset email sent."
-}
-```
-
-### Password Reset Confirm
-
-```http
-POST /api/auth/password/reset/confirm/
-```
-
-Request:
-
-```json
-{
-  "uid": "uid",
-  "token": "reset-token",
+  "uid": "uid_from_email",
+  "token": "reset-token-from-email",
   "new_password1": "newpass123",
   "new_password2": "newpass123"
 }
 ```
 
 Response:
-
 ```json
-{
-  "detail": "Password reset complete."
-}
+{ "detail": "Password reset complete." }
 ```
+
+---
 
 ## Event Shape
 
-Every event returned to the frontend should match:
+Every event object returned to the frontend must match this shape:
 
 ```json
 {
   "id": 1,
   "title": "Sunday Worship Service",
-  "description": "Join us for worship.",
+  "description": "Join us for an evening of worship.",
   "date": "2026-06-01T10:00:00Z",
-  "location": "Lagos Christian Center",
+  "location": "Lagos Christian Center, Lagos",
   "pricing": "free",
   "category": "worship",
   "event_type": "church_service",
@@ -273,152 +232,75 @@ Every event returned to the frontend should match:
 }
 ```
 
-Required fields:
+**Required fields:** `id`, `title`, `description`, `date`, `location`, `pricing`, `category`, `event_type`, `language`, `age_group`, `created_by`, `approval_status`, `image` (URL or `null`), `created_at`
 
-- `id`: number
-- `title`: string
-- `description`: string
-- `date`: ISO datetime string
-- `location`: string
-- `pricing`: `free` or `paid`
-- `category`: string
-- `event_type`: string
-- `language`: string
-- `age_group`: string
-- `created_by`: user ID number
-- `approval_status`: `pending`, `approved`, or `rejected`
-- `image`: URL string or `null`
-- `created_at`: ISO datetime string
+**User-context fields** (return defaults when unauthenticated): `is_liked`, `is_saved`, `likes_count`, `saves_count`
 
-Useful user-specific fields:
+---
 
-- `is_liked`: boolean
-- `is_saved`: boolean
-- `likes_count`: number
-- `saves_count`: number
+## Event Value Enumerations
 
-## Event Value Options
+These are the exact string values the frontend currently sends and displays.
 
-The create event form currently sends these values.
-
-Categories:
-
-```text
-worship
-conference
-seminar
-fellowship
-outreach
-youth
-children
-prayer
-music
-teaching
+### `category`
+```
+worship  conference  seminar  fellowship  outreach
+youth  children  prayer  music  teaching
 ```
 
-Event types:
-
-```text
-church_service
-bible_study
-prayer_meeting
-fellowship
-conference
-seminar
-outreach
-special_event
+### `event_type`
+```
+church_service  bible_study  prayer_meeting  fellowship
+conference  seminar  outreach  special_event
 ```
 
-Languages:
-
-```text
-english
-yoruba
-igbo
-hausa
-pidgin
-french
-multilingual
+### `language`
+```
+english  yoruba  igbo  hausa  pidgin  french  multilingual
 ```
 
-Age groups:
-
-```text
-all_ages
-children
-teenagers
-young_adults
-adults
-seniors
+### `age_group`
+```
+all_ages  children  teenagers  young_adults  adults  seniors
 ```
 
-Pricing:
-
-```text
-free
-paid
+### `pricing`
+```
+free  paid
 ```
 
-Settings also reference these extra preference values:
-
-```text
-bible_study
-community_service
-spanish
-youth
+### `approval_status`
+```
+pending  approved  rejected
 ```
 
-For fastest frontend compatibility, either allow flexible strings or normalize the frontend options later.
+> **Tip:** Accept flexible strings on the backend to make initial development faster; enforce the enum once the frontend options are finalised.
+
+---
 
 ## Event Endpoints
 
-### List Events
+### `GET /api/events/`
 
-```http
-GET /api/events/
-```
+**Public.** Return a **plain JSON array** — not a DRF paginated object (`{ "results": [...] }`).
 
-Public.
-
-Return a plain JSON array. Do not return DRF paginated shape like `{ "results": [...] }` unless the frontend is changed.
+The frontend paginates client-side. A future iteration will move pagination server-side.
 
 Response:
-
 ```json
 [
-  {
-    "id": 1,
-    "title": "Sunday Worship Service",
-    "description": "Join us.",
-    "date": "2026-06-01T10:00:00Z",
-    "location": "Lagos",
-    "pricing": "free",
-    "category": "worship",
-    "event_type": "church_service",
-    "language": "english",
-    "age_group": "all_ages",
-    "created_by": 1,
-    "approval_status": "approved",
-    "image": null,
-    "created_at": "2026-05-09T12:00:00Z",
-    "is_liked": false,
-    "is_saved": false,
-    "likes_count": 0,
-    "saves_count": 0
-  }
+  { ...event },
+  { ...event }
 ]
 ```
 
-### Create Event
+---
 
-```http
-POST /api/events/
-```
+### `POST /api/events/`
 
-Requires authentication.
+**Requires authentication.**
 
-The frontend sends JSON when no image is selected:
-
+When no image is selected, the frontend sends `application/json`:
 ```json
 {
   "title": "Sunday Worship",
@@ -433,167 +315,103 @@ The frontend sends JSON when no image is selected:
 }
 ```
 
-The frontend sends `multipart/form-data` when an image is selected:
+When an image is selected, the frontend sends `multipart/form-data` with the same fields plus `image=<file>`.
 
-```text
-title=Sunday Worship
-description=Join us.
-date=2026-06-01T10:00:00Z
-location=Lagos
-pricing=free
-category=worship
-event_type=church_service
-language=english
-age_group=all_ages
-image=<file>
-```
-
-Backend should set:
-
-- `created_by` from `request.user`
-- `created_at` automatically
-- `approval_status` to either `pending` or `approved`
+The backend must:
+- Set `created_by` from `request.user`
+- Set `created_at` automatically
+- Set `approval_status` to `pending` or `approved` per your workflow
 
 Response: created event object.
 
-### Get Event Detail
+---
 
-```http
-GET /api/events/{id}/
-```
+### `GET /api/events/{id}/`
 
-Public.
+**Public.** Response: one event object.
 
-Response: one event object.
+---
 
-### Update Event
+### `PUT /api/events/{id}/`
 
-```http
-PUT /api/events/{id}/
-```
-
-Requires authentication.
-
-Supports JSON and multipart data. The frontend uses `PUT` but may send partial data, so the backend should treat this like a partial update or use a serializer that allows partial updates for this route.
+**Requires authentication.** Treat as partial update (the frontend may send only changed fields). Supports both JSON and multipart/form-data.
 
 Response: updated event object.
 
-### Delete Event
+---
 
-```http
-DELETE /api/events/{id}/
-```
+### `DELETE /api/events/{id}/`
 
-Requires authentication.
-
-Return JSON, not an empty 204 response.
-
-Response:
+**Requires authentication.** Return JSON (not empty 204):
 
 ```json
-{
-  "detail": "Event deleted successfully."
-}
+{ "detail": "Event deleted successfully." }
 ```
 
-## Like And Save Endpoints
+---
 
-### Toggle Like
+## Like & Save Endpoints
 
-```http
-POST /api/events/{id}/like/
-```
+### `POST /api/events/{id}/like/`
 
-Requires authentication.
+**Requires authentication.** Toggle — like if not liked, unlike if already liked.
 
-If the current user has not liked the event:
-
+When liked:
 ```json
-{
-  "message": "Event liked successfully.",
-  "liked": true
-}
+{ "message": "Event liked successfully.", "liked": true }
 ```
 
-If the current user has already liked the event:
-
+When unliked:
 ```json
-{
-  "message": "Event unliked successfully.",
-  "liked": false
-}
+{ "message": "Event unliked successfully.", "liked": false }
 ```
 
-### Toggle Save
+---
 
-```http
-POST /api/events/{id}/save/
-```
+### `POST /api/events/{id}/save/`
 
-Requires authentication.
+**Requires authentication.** Toggle — save if not saved, unsave if already saved.
 
-If the current user has not saved the event:
-
+When saved:
 ```json
-{
-  "message": "Event saved successfully.",
-  "saved": true
-}
+{ "message": "Event saved successfully.", "saved": true }
 ```
 
-If the current user has already saved the event:
-
+When unsaved:
 ```json
-{
-  "message": "Event unsaved successfully.",
-  "saved": false
-}
+{ "message": "Event unsaved successfully.", "saved": false }
 ```
 
-### Liked Events
+---
 
-```http
-GET /api/events/liked/
-```
+### `GET /api/events/liked/`
 
-Requires authentication.
+**Requires authentication.** Plain array of event objects liked by the current user.
 
-Response: plain array of event objects liked by the current user.
+---
 
-### Saved Events
+### `GET /api/events/saved/`
 
-```http
-GET /api/events/saved/
-```
+**Requires authentication.** Plain array of event objects saved by the current user.
 
-Requires authentication.
+---
 
-Response: plain array of event objects saved by the current user.
+### `GET /api/events/my-events/`
 
-### My Events
+**Requires authentication.** Plain array of event objects where `created_by` is the current user.
 
-```http
-GET /api/events/my-events/
-```
-
-Requires authentication.
-
-Response: plain array of event objects where `created_by` is the current user.
+---
 
 ## Error Responses
 
-The frontend auth service reads `detail` first for errors.
+The frontend reads `detail` first for generic errors, then checks for field-level keys.
 
-Good generic error:
-
+Generic error:
 ```json
-{
-  "detail": "Invalid credentials."
-}
+{ "detail": "Invalid credentials." }
 ```
 
-Good validation error:
-
+Validation error:
 ```json
 {
   "email": ["A user with this email already exists."],
@@ -601,126 +419,111 @@ Good validation error:
 }
 ```
 
-Good unauthenticated error:
-
+Unauthenticated:
 ```json
-{
-  "detail": "Authentication credentials were not provided."
-}
+{ "detail": "Authentication credentials were not provided." }
 ```
 
-Use suitable HTTP status codes:
+Use appropriate HTTP status codes:
 
-- `400` for validation errors
-- `401` for missing/invalid auth
-- `403` for authenticated but forbidden
-- `404` for missing resources
-- `500` only for unexpected server errors
+| Status | Meaning                              |
+|--------|--------------------------------------|
+| `400`  | Validation error                     |
+| `401`  | Missing or invalid auth token        |
+| `403`  | Authenticated but not authorised     |
+| `404`  | Resource not found                   |
+| `500`  | Unexpected server error only         |
 
-## CORS And Development Settings
+---
 
-The frontend runs with Vite, usually at:
+## CORS & Development
 
-```text
-http://localhost:5173
-```
+The Vite dev server runs at `http://localhost:5173`.
 
-Backend CORS should allow:
+Required CORS configuration:
+- **Origin:** `http://localhost:5173`
+- **Methods:** `GET, POST, PUT, PATCH, DELETE, OPTIONS`
+- **Headers:** `Content-Type, Authorization`
+- Multipart file uploads must be accepted
 
-- Origin: `http://localhost:5173`
-- Methods: `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`
-- Headers: `Content-Type`, `Authorization`
-- Multipart uploads
+Serve `MEDIA_ROOT` in development so event images can load in the browser.
 
-In development, serve media files so event images can render in the browser.
+---
 
-## Recommended Django Models
+## Recommended Data Models
 
-### User/Profile
+### CustomUser / Profile
 
-Use either a custom user model or a user plus profile model. It must support email login and expose these fields:
-
-- `email`
-- `first_name`
-- `last_name`
-- `phone_number`
-- `street_address`
-- `city`
-- `state`
-- `country`
-- `preferred_categories`
-- `preferred_languages`
-- `preferred_age_groups`
-- `max_distance_km`
-- `email_notifications`
-- `event_reminders`
-
-For array fields, use JSON fields for simple cross-database support.
+Either a custom `AbstractBaseUser` with email login, or a `User` plus a `Profile` model. Must expose all fields in the [User Shape](#user-shape). Use JSON fields for array preferences (`preferred_categories`, etc.) for simplicity.
 
 ### Event
 
-Fields:
-
-- `title`
-- `description`
-- `date`
-- `location`
-- `pricing`
-- `category`
-- `event_type`
-- `language`
-- `age_group`
-- `created_by`
-- `approval_status`
-- `image`
-- `created_at`
-- `updated_at`
+| Field             | Type           | Notes                              |
+|-------------------|----------------|------------------------------------|
+| `title`           | CharField      |                                    |
+| `description`     | TextField      |                                    |
+| `date`            | DateTimeField  | ISO 8601, UTC                      |
+| `location`        | CharField      |                                    |
+| `pricing`         | CharField      | `free` or `paid`                   |
+| `category`        | CharField      | See enumerations                   |
+| `event_type`      | CharField      | See enumerations                   |
+| `language`        | CharField      | See enumerations                   |
+| `age_group`       | CharField      | See enumerations                   |
+| `created_by`      | FK → User      | Set from `request.user`            |
+| `approval_status` | CharField      | `pending` / `approved` / `rejected`|
+| `image`           | ImageField     | Nullable; serve from MEDIA_URL     |
+| `created_at`      | DateTimeField  | Auto-set                           |
+| `updated_at`      | DateTimeField  | Auto-set                           |
 
 ### EventLike
 
-Fields:
+| Field      | Type          | Notes              |
+|------------|---------------|--------------------|
+| `user`     | FK → User     |                    |
+| `event`    | FK → Event    |                    |
+| `created_at` | DateTimeField | Auto-set          |
 
-- `user`
-- `event`
-- `created_at`
-
-Constraint:
-
-- unique `(user, event)`
+**Constraint:** `unique_together = [('user', 'event')]`
 
 ### EventSave
 
-Fields:
+Same structure as `EventLike`.
 
-- `user`
-- `event`
-- `created_at`
-
-Constraint:
-
-- unique `(user, event)`
-
-## Compatibility Notes
-
-- The frontend expects `Authorization: Token <token>`, not Bearer auth.
-- The frontend expects plain arrays for event list endpoints.
-- The frontend calls `response.json()` for most requests, so avoid empty responses for delete/logout.
-- Image URLs should be absolute or otherwise browser-resolvable.
-- `created_by` is displayed as a user ID, so returning only the numeric ID is currently fine.
-- Search UI exists but currently only logs the query. No search endpoint is required yet.
-- Sidebar filters exist but do not call the backend yet. No filter endpoint is required yet.
-- Notifications are mock frontend state only. No notification endpoint is wired yet.
-- Related event routes are referenced in the UI but not backed by API calls yet.
+---
 
 ## Suggested Build Order
 
-1. Create Django project with DRF, CORS, token auth, and media settings.
-2. Implement user model/profile fields and auth endpoints.
-3. Implement event model and serializer matching the event shape above.
-4. Implement public event list and detail endpoints.
-5. Implement authenticated event create/update/delete with image upload.
-6. Implement like/save toggle models and endpoints.
-7. Implement liked, saved, and my-events list endpoints.
-8. Implement password change/reset endpoints.
-9. Add optional admin approval workflow, search, filters, notifications, and related events.
+1. Django project setup — DRF, CORS (`django-cors-headers`), token auth, media settings
+2. Custom user model with email login + all profile fields
+3. Auth endpoints: register, login, logout, current user, update profile
+4. Password change and reset endpoints
+5. Event model + serializer matching the [Event Shape](#event-shape) exactly
+6. Public event list and detail endpoints
+7. Authenticated event create (JSON + multipart) and delete
+8. Event update endpoint
+9. EventLike and EventSave models + toggle endpoints
+10. Liked, saved, and my-events list endpoints
 
+Optional / later:
+- Admin approval workflow
+- Server-side search and filtering (query params on `/api/events/`)
+- Server-side pagination
+- Notification model + endpoints
+- Related events endpoint (filter by category, exclude current)
+- Organiser profiles
+
+---
+
+## Unimplemented Frontend Features
+
+These UI elements exist in the frontend but do not yet call the backend:
+
+| Feature              | Status                                      |
+|----------------------|---------------------------------------------|
+| Search bar           | Logs query to console; no search endpoint yet |
+| Sidebar filters      | Local state only; no filter params sent      |
+| Notifications        | Hardcoded mock data; no backend wiring       |
+| Related events       | Empty array; awaiting category-filter endpoint |
+| Event attendance     | Not yet implemented                          |
+
+These do not require backend work yet; they will be wired up in a future iteration.

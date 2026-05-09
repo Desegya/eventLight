@@ -1,0 +1,25 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9333EA"/>
+      <stop offset="1" stop-color="#4C1D95"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="40%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="white" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="star" x1="6" y1="6" x2="26" y2="26" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset="1" stop-color="#EDE9FE" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="9" fill="url(#bg)"/>
+  <rect width="32" height="32" rx="9" fill="url(#glow)"/>
+  <!-- 4-pointed sparkle star, scaled to 32×32 viewport (center 16,16; outer radius 9.5) -->
+  <path d="M16 6.5 Q18.3 13.7 25.5 16 Q18.3 18.3 16 25.5 Q13.7 18.3 6.5 16 Q13.7 13.7 16 6.5Z" fill="url(#star)"/>
+  <!-- Micro inner star -->
+  <path d="M16 11.7 Q17.1 14.9 20.3 16 Q17.1 17.1 16 20.3 Q14.9 17.1 11.7 16 Q14.9 14.9 16 11.7Z" fill="white" opacity="0.5"/>
+  <!-- Constellation dots -->
+  <circle cx="25" cy="7.5" r="1.7" fill="white" opacity="0.4"/>
+  <circle cx="7.5" cy="24.5" r="1.7" fill="white" opacity="0.4"/>
+</svg>

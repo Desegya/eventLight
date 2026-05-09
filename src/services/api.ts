@@ -1,4 +1,4 @@
-import { Event, CreateEventData, UpdateEventData } from "../types/event";
+import { Event, CreateEventData, UpdateEventData, EventFilters, PaginatedEvents } from "../types/event";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
@@ -83,8 +83,17 @@ class ApiService {
   }
 
   // Event endpoints
-  async getEvents(): Promise<Event[]> {
-    return this.request("/events/");
+  async getEvents(filters?: Partial<EventFilters>): Promise<PaginatedEvents> {
+    const params = new URLSearchParams();
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+          params.append(key, String(value));
+        }
+      });
+    }
+    const query = params.toString();
+    return this.request(`/events/${query ? "?" + query : ""}`);
   }
 
   async createEvent(eventData: CreateEventData): Promise<Event> {

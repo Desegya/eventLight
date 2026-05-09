@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Box,
-  Flex,
   Text,
   VStack,
   HStack,
@@ -12,252 +11,97 @@ import {
   FormLabel,
   Icon,
   IconButton,
-  Divider,
+  SimpleGrid,
   useColorModeValue,
   useToast,
-  Spinner,
-  Center,
   Badge,
+  Divider,
 } from "@chakra-ui/react";
 import {
-  FiEdit2,
-  FiCheck,
-  FiX,
+  FiCamera,
   FiMail,
   FiPhone,
   FiMapPin,
   FiUser,
-  FiCamera,
   FiGlobe,
+  FiCheck,
 } from "react-icons/fi";
 import { useAuth } from "../contexts/AuthContext";
 import { ProfileUpdateData } from "../types/auth";
 
-interface FieldConfig {
-  label: string;
-  field: keyof ProfileUpdateData;
-  icon: React.ElementType;
-  placeholder: string;
-  readonly?: boolean;
-  value: string;
-}
-
-const EditableRow = ({
-  config,
-  onSave,
-  isSaving,
-}: {
-  config: FieldConfig;
-  onSave: (field: keyof ProfileUpdateData, value: string) => Promise<void>;
-  isSaving: boolean;
-}) => {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(config.value);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const borderColor = useColorModeValue("gray.100", "gray.700");
+const SectionCard = ({ title, children }: { title: string; children: React.ReactNode }) => {
+  const cardBg    = useColorModeValue("white",    "gray.800");
+  const border    = useColorModeValue("gray.200", "gray.700");
   const labelColor = useColorModeValue("gray.500", "gray.400");
-  const valueColor = useColorModeValue("gray.800", "white");
-  const emptyColor = useColorModeValue("gray.400", "gray.500");
-  const iconBg = useColorModeValue("gray.100", "gray.700");
-
-  const startEdit = () => {
-    setDraft(config.value);
-    setEditing(true);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  };
-
-  const cancel = () => {
-    setDraft(config.value);
-    setEditing(false);
-  };
-
-  const save = async () => {
-    await onSave(config.field, draft);
-    setEditing(false);
-  };
-
   return (
-    <HStack
-      spacing={4}
-      py={4}
-      borderBottom="1px solid"
-      borderColor={borderColor}
-      align="center"
-      w="full"
-    >
-      <Box
-        w="34px" h="34px" borderRadius="lg"
-        bg={iconBg}
-        display="flex" alignItems="center" justifyContent="center"
-        flexShrink={0}
-      >
-        <Icon as={config.icon} boxSize={3.5} color="brand.500" />
-      </Box>
-
-      <Box flex={1} minW={0}>
-        <Text fontSize="xs" color={labelColor} fontWeight="600" mb={0.5}>
-          {config.label}
+    <Box bg={cardBg} border="1px solid" borderColor={border} borderRadius="2xl" overflow="hidden">
+      <Box px={6} py={3.5} borderBottom="1px solid" borderColor={border}>
+        <Text fontSize="xs" fontWeight="700" letterSpacing="0.08em" textTransform="uppercase" color={labelColor}>
+          {title}
         </Text>
-        {editing ? (
-          <Input
-            ref={inputRef}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            size="sm"
-            variant="flushed"
-            borderColor="brand.400"
-            _focus={{ borderColor: "brand.500" }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") save();
-              if (e.key === "Escape") cancel();
-            }}
-          />
-        ) : (
-          <Text
-            fontSize="sm"
-            fontWeight="500"
-            color={config.value ? valueColor : emptyColor}
-            fontStyle={config.value ? "normal" : "italic"}
-            noOfLines={1}
-          >
-            {config.value || config.placeholder}
-          </Text>
-        )}
       </Box>
-
-      {!config.readonly && (
-        <HStack spacing={1} flexShrink={0}>
-          {editing ? (
-            <>
-              <IconButton
-                aria-label="Save"
-                icon={isSaving ? <Spinner size="xs" /> : <FiCheck size={14} />}
-                size="xs"
-                borderRadius="full"
-                colorScheme="green"
-                variant="ghost"
-                onClick={save}
-                isDisabled={isSaving}
-              />
-              <IconButton
-                aria-label="Cancel"
-                icon={<FiX size={14} />}
-                size="xs"
-                borderRadius="full"
-                variant="ghost"
-                onClick={cancel}
-              />
-            </>
-          ) : (
-            <IconButton
-              aria-label={`Edit ${config.label}`}
-              icon={<FiEdit2 size={13} />}
-              size="xs"
-              borderRadius="full"
-              variant="ghost"
-              color={labelColor}
-              onClick={startEdit}
-            />
-          )}
-        </HStack>
-      )}
-
-      {config.readonly && (
-        <Badge fontSize="9px" colorScheme="gray" borderRadius="full" px={2}>
-          fixed
-        </Badge>
-      )}
-    </HStack>
+      <Box px={6} py={5}>{children}</Box>
+    </Box>
   );
 };
 
 const Account = () => {
-  const { user, updateProfile, loading } = useAuth();
+  const { user, updateProfile } = useAuth();
   const toast = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [savingField, setSavingField] = useState<string | null>(null);
 
-  const cardBg = useColorModeValue("white", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const mutedColor = useColorModeValue("gray.500", "gray.400");
-  const pageBg = useColorModeValue("gray.50", "gray.900");
+  const mutedColor  = useColorModeValue("gray.500", "gray.400");
+  const cardBg      = useColorModeValue("white",    "gray.800");
+  const border      = useColorModeValue("gray.200", "gray.700");
+  const headingColor = useColorModeValue("gray.900", "white");
 
-  const [formData, setFormData] = useState<ProfileUpdateData>({});
+  // Separate draft states per section so saves are scoped
+  const [nameDraft, setNameDraft] = useState({ first_name: "", last_name: "" });
+  const [contactDraft, setContactDraft] = useState({ phone_number: "" });
+  const [addressDraft, setAddressDraft] = useState({ street_address: "", city: "", state: "", country: "" });
+
+  const [savingName,    setSavingName]    = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setFormData({
-        first_name: user.first_name || "",
-        last_name: user.last_name || "",
-        phone_number: user.phone_number || "",
+      setNameDraft({ first_name: user.first_name || "", last_name: user.last_name || "" });
+      setContactDraft({ phone_number: user.phone_number || "" });
+      setAddressDraft({
         street_address: user.street_address || "",
-        city: user.city || "",
-        state: user.state || "",
+        city:    user.city    || "",
+        state:   user.state   || "",
         country: user.country || "Nigeria",
       });
     }
   }, [user]);
 
-  const handleSave = async (field: keyof ProfileUpdateData, value: string) => {
-    setSavingField(field as string);
+  const saveSection = async (
+    data: Partial<ProfileUpdateData>,
+    setSaving: (v: boolean) => void
+  ) => {
+    setSaving(true);
     try {
-      await updateProfile({ [field]: value });
-      setFormData((prev) => ({ ...prev, [field]: value }));
-      toast({
-        title: "Saved",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-        position: "top-right",
-      });
+      await updateProfile(data);
+      toast({ title: "Saved", status: "success", duration: 2000, isClosable: true, position: "top-right" });
     } catch {
-      toast({
-        title: "Failed to save",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-        position: "top-right",
-      });
+      toast({ title: "Failed to save", status: "error", duration: 3000, isClosable: true, position: "top-right" });
     } finally {
-      setSavingField(null);
+      setSaving(false);
     }
   };
 
-  if (!user) {
-    return (
-      <Center h="200px">
-        <Text color={mutedColor} fontSize="sm">Please log in to view your account.</Text>
-      </Center>
-    );
-  }
+  if (!user) return null;
 
   const displayName = `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.email;
-  const initials = `${(user.first_name || "")[0] || ""}${(user.last_name || "")[0] || ""}`.toUpperCase() || user.email[0].toUpperCase();
-
-  const fields: FieldConfig[] = [
-    { label: "First Name", field: "first_name", icon: FiUser, placeholder: "Not set", value: (formData.first_name as string) || "" },
-    { label: "Last Name", field: "last_name", icon: FiUser, placeholder: "Not set", value: (formData.last_name as string) || "" },
-    { label: "Email address", field: "email" as keyof ProfileUpdateData, icon: FiMail, placeholder: user.email, value: user.email, readonly: true },
-    { label: "Phone number", field: "phone_number", icon: FiPhone, placeholder: "Add a phone number", value: (formData.phone_number as string) || "" },
-    { label: "Street address", field: "street_address", icon: FiMapPin, placeholder: "Add your street address", value: (formData.street_address as string) || "" },
-    { label: "City", field: "city", icon: FiMapPin, placeholder: "Add your city", value: (formData.city as string) || "" },
-    { label: "State / Region", field: "state", icon: FiMapPin, placeholder: "Add your state", value: (formData.state as string) || "" },
-    { label: "Country", field: "country", icon: FiGlobe, placeholder: "Nigeria", value: (formData.country as string) || "" },
-  ];
 
   return (
     <Box>
-      {/* Avatar section */}
-      <Box
-        bg={cardBg}
-        border="1px solid"
-        borderColor={borderColor}
-        borderRadius="2xl"
-        p={6}
-        mb={4}
-      >
-        <Flex align="center" gap={5}>
+      {/* ── Profile header ── */}
+      <Box bg={cardBg} border="1px solid" borderColor={border} borderRadius="2xl" p={6} mb={5}>
+        <HStack spacing={5} align="center" flexWrap="wrap" gap={4}>
+          {/* Avatar */}
           <Box position="relative" flexShrink={0}>
             <Avatar
               size="xl"
@@ -265,12 +109,7 @@ const Account = () => {
               bg="brand.600"
               color="white"
               fontWeight="800"
-              src={undefined}
-            >
-              {!user.first_name && !user.last_name && (
-                <Text fontWeight="800" fontSize="xl">{initials}</Text>
-              )}
-            </Avatar>
+            />
             <IconButton
               aria-label="Change photo"
               icon={<FiCamera size={13} />}
@@ -289,49 +128,199 @@ const Account = () => {
               type="file"
               accept="image/*"
               style={{ display: "none" }}
-              onChange={() => toast({ title: "Photo upload coming soon", status: "info", duration: 2000, position: "top-right" })}
+              onChange={() =>
+                toast({ title: "Photo upload coming soon", status: "info", duration: 2000, position: "top-right" })
+              }
             />
           </Box>
-          <Box>
-            <Text fontWeight="800" fontSize="lg" letterSpacing="-0.02em">
+
+          {/* Name + email */}
+          <Box flex={1} minW={0}>
+            <Text fontWeight="800" fontSize="xl" letterSpacing="-0.02em" color={headingColor} noOfLines={1}>
               {displayName}
             </Text>
-            <Text fontSize="sm" color={mutedColor}>{user.email}</Text>
-            <Badge mt={1.5} colorScheme="purple" borderRadius="full" px={2.5} py={0.5} fontSize="xs">
+            <HStack spacing={1.5} mt={1}>
+              <Icon as={FiMail} boxSize={3.5} color={mutedColor} />
+              <Text fontSize="sm" color={mutedColor} noOfLines={1}>{user.email}</Text>
+            </HStack>
+            <Badge mt={2} colorScheme="purple" borderRadius="full" px={2.5} py={0.5} fontSize="xs">
               Member
             </Badge>
           </Box>
-        </Flex>
+        </HStack>
       </Box>
 
-      {/* Fields */}
-      <Box
-        bg={cardBg}
-        border="1px solid"
-        borderColor={borderColor}
-        borderRadius="2xl"
-        overflow="hidden"
-      >
-        <Box px={6} py={3.5} borderBottom="1px solid" borderColor={borderColor}>
-          <Text fontSize="xs" fontWeight="700" letterSpacing="0.08em" textTransform="uppercase" color={mutedColor}>
-            Personal Information
-          </Text>
-        </Box>
-        <Box px={6} pb={2}>
-          {fields.map((f) => (
-            <EditableRow
-              key={f.field as string}
-              config={f}
-              onSave={handleSave}
-              isSaving={savingField === f.field}
+      <VStack spacing={4} align="stretch">
+
+        {/* ── Name section ── */}
+        <SectionCard title="Name">
+          <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4} mb={4}>
+            <FormControl>
+              <FormLabel fontSize="xs" fontWeight="600" color={mutedColor} mb={1}>
+                <HStack spacing={1}><Icon as={FiUser} boxSize={3} /><Text>First name</Text></HStack>
+              </FormLabel>
+              <Input
+                value={nameDraft.first_name}
+                onChange={(e) => setNameDraft((p) => ({ ...p, first_name: e.target.value }))}
+                placeholder="Your first name"
+                size="md"
+              />
+            </FormControl>
+            <FormControl>
+              <FormLabel fontSize="xs" fontWeight="600" color={mutedColor} mb={1}>
+                <HStack spacing={1}><Icon as={FiUser} boxSize={3} /><Text>Last name</Text></HStack>
+              </FormLabel>
+              <Input
+                value={nameDraft.last_name}
+                onChange={(e) => setNameDraft((p) => ({ ...p, last_name: e.target.value }))}
+                placeholder="Your last name"
+                size="md"
+              />
+            </FormControl>
+          </SimpleGrid>
+          <Button
+            variant="brand"
+            size="sm"
+            borderRadius="full"
+            px={5}
+            leftIcon={<FiCheck size={13} />}
+            isLoading={savingName}
+            loadingText="Saving…"
+            onClick={() => saveSection(nameDraft, setSavingName)}
+          >
+            Save name
+          </Button>
+        </SectionCard>
+
+        {/* ── Email (read-only) ── */}
+        <SectionCard title="Email address">
+          <HStack spacing={3} p={3} borderRadius="xl" bg={useColorModeValue("gray.50", "gray.900")}>
+            <Icon as={FiMail} boxSize={4} color="brand.500" flexShrink={0} />
+            <Box flex={1} minW={0}>
+              <Text fontSize="sm" fontWeight="600" noOfLines={1}>{user.email}</Text>
+              <Text fontSize="xs" color={mutedColor} mt={0.5}>
+                Your email cannot be changed after registration
+              </Text>
+            </Box>
+            <Badge colorScheme="gray" borderRadius="full" fontSize="10px" px={2} flexShrink={0}>
+              fixed
+            </Badge>
+          </HStack>
+        </SectionCard>
+
+        {/* ── Contact ── */}
+        <SectionCard title="Contact">
+          <FormControl mb={4}>
+            <FormLabel fontSize="xs" fontWeight="600" color={mutedColor} mb={1}>
+              <HStack spacing={1}><Icon as={FiPhone} boxSize={3} /><Text>Phone number</Text></HStack>
+            </FormLabel>
+            <Input
+              value={contactDraft.phone_number}
+              onChange={(e) => setContactDraft({ phone_number: e.target.value })}
+              placeholder="+234 800 000 0000"
+              size="md"
+              type="tel"
             />
-          ))}
-        </Box>
-      </Box>
+          </FormControl>
+          <Button
+            variant="brand"
+            size="sm"
+            borderRadius="full"
+            px={5}
+            leftIcon={<FiCheck size={13} />}
+            isLoading={savingContact}
+            loadingText="Saving…"
+            onClick={() => saveSection(contactDraft, setSavingContact)}
+          >
+            Save contact
+          </Button>
+        </SectionCard>
 
-      <Text fontSize="xs" color={mutedColor} mt={3} textAlign="center">
-        Click the pencil icon next to any field to edit it. Changes save immediately.
-      </Text>
+        {/* ── Address ── */}
+        <SectionCard title="Location">
+          <VStack spacing={4} align="stretch" mb={4}>
+            <FormControl>
+              <FormLabel fontSize="xs" fontWeight="600" color={mutedColor} mb={1}>
+                <HStack spacing={1}><Icon as={FiMapPin} boxSize={3} /><Text>Street address</Text></HStack>
+              </FormLabel>
+              <Input
+                value={addressDraft.street_address}
+                onChange={(e) => setAddressDraft((p) => ({ ...p, street_address: e.target.value }))}
+                placeholder="12 Church Street"
+                size="md"
+              />
+            </FormControl>
+            <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4}>
+              <FormControl>
+                <FormLabel fontSize="xs" fontWeight="600" color={mutedColor} mb={1}>City</FormLabel>
+                <Input
+                  value={addressDraft.city}
+                  onChange={(e) => setAddressDraft((p) => ({ ...p, city: e.target.value }))}
+                  placeholder="Lagos"
+                  size="md"
+                />
+              </FormControl>
+              <FormControl>
+                <FormLabel fontSize="xs" fontWeight="600" color={mutedColor} mb={1}>State</FormLabel>
+                <Input
+                  value={addressDraft.state}
+                  onChange={(e) => setAddressDraft((p) => ({ ...p, state: e.target.value }))}
+                  placeholder="Lagos State"
+                  size="md"
+                />
+              </FormControl>
+            </SimpleGrid>
+            <FormControl>
+              <FormLabel fontSize="xs" fontWeight="600" color={mutedColor} mb={1}>
+                <HStack spacing={1}><Icon as={FiGlobe} boxSize={3} /><Text>Country</Text></HStack>
+              </FormLabel>
+              <Input
+                value={addressDraft.country}
+                onChange={(e) => setAddressDraft((p) => ({ ...p, country: e.target.value }))}
+                placeholder="Nigeria"
+                size="md"
+              />
+            </FormControl>
+          </VStack>
+          <Button
+            variant="brand"
+            size="sm"
+            borderRadius="full"
+            px={5}
+            leftIcon={<FiCheck size={13} />}
+            isLoading={savingAddress}
+            loadingText="Saving…"
+            onClick={() => saveSection(addressDraft, setSavingAddress)}
+          >
+            Save location
+          </Button>
+        </SectionCard>
+
+        {/* ── Danger zone ── */}
+        <SectionCard title="Danger zone">
+          <HStack justify="space-between" align="center" flexWrap="wrap" gap={3}>
+            <Box>
+              <Text fontSize="sm" fontWeight="600" color="red.500">Delete account</Text>
+              <Text fontSize="xs" color={mutedColor} mt={0.5}>
+                Permanently remove your account and all your data. This cannot be undone.
+              </Text>
+            </Box>
+            <Button
+              size="sm"
+              colorScheme="red"
+              variant="outline"
+              borderRadius="full"
+              px={5}
+              onClick={() =>
+                toast({ title: "Account deletion — coming soon", status: "info", duration: 3000, position: "top-right" })
+              }
+            >
+              Delete account
+            </Button>
+          </HStack>
+        </SectionCard>
+
+      </VStack>
     </Box>
   );
 };

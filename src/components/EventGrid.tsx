@@ -5,7 +5,6 @@ import {
   useDisclosure,
   HStack,
   useColorModeValue,
-  useBreakpointValue,
   Spinner,
   Center,
   Text,
@@ -16,27 +15,30 @@ import {
 import EventCard from "./EventCard";
 import { FiFilter, FiChevronLeft, FiChevronRight, FiAlertCircle } from "react-icons/fi";
 import Sidebar from "./SideBar";
-import { useState } from "react";
 import { useEvents } from "../hooks/useEvents";
+import { EventFilters } from "../types/event";
 
-const EventGrid = () => {
-  const { events, loading, error } = useEvents();
+const PAGE_SIZE = 12;
+
+interface Props {
+  filters: EventFilters;
+  onFiltersChange: (patch: Partial<EventFilters>) => void;
+}
+
+const EventGrid = ({ filters, onFiltersChange }: Props) => {
+  const { events, totalCount, loading, error } = useEvents(filters);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const eventsPerPage =
-    useBreakpointValue({ base: 6, md: 8, lg: 9, xl: 12 }) || 9;
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const currentPage = filters.page;
 
-  const totalPages = Math.ceil(events.length / eventsPerPage);
-  const indexOfLast = currentPage * eventsPerPage;
-  const indexOfFirst = indexOfLast - eventsPerPage;
-  const currentEvents = events.slice(indexOfFirst, indexOfLast);
+  const mutedColor     = useColorModeValue("gray.500", "gray.400");
+  const borderColor    = useColorModeValue("gray.200", "gray.700");
+  const pillActiveBg   = useColorModeValue("brand.600", "brand.500");
+  const pillInactiveBg = useColorModeValue("white",    "gray.800");
+  const pillBorder     = useColorModeValue("gray.200", "gray.700");
 
-  const mutedColor = useColorModeValue("gray.500", "gray.400");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const pillActiveBg = useColorModeValue("brand.600", "brand.500");
-  const pillInactiveBg = useColorModeValue("white", "gray.800");
-  const pillInactiveBorder = useColorModeValue("gray.200", "gray.700");
+  const setPage = (p: number) => onFiltersChange({ page: p });
 
   const getVisiblePages = () => {
     if (totalPages <= 5) return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -48,16 +50,8 @@ const EventGrid = () => {
   if (loading) {
     return (
       <Center h="320px" flexDirection="column" gap={4}>
-        <Spinner
-          size="xl"
-          color="brand.500"
-          thickness="3px"
-          speed="0.7s"
-          emptyColor="gray.200"
-        />
-        <Text color={mutedColor} fontSize="sm" fontWeight="500">
-          Loading events...
-        </Text>
+        <Spinner size="xl" color="brand.500" thickness="3px" speed="0.7s" emptyColor="gray.200" />
+        <Text color={mutedColor} fontSize="sm" fontWeight="500">Loading events…</Text>
       </Center>
     );
   }
@@ -72,9 +66,12 @@ const EventGrid = () => {
     );
   }
 
+  const start = (currentPage - 1) * PAGE_SIZE + 1;
+  const end   = Math.min(currentPage * PAGE_SIZE, totalCount);
+
   return (
     <Box>
-      {/* Mobile filter button */}
+      {/* Mobile filter trigger */}
       <Box display={{ base: "block", lg: "none" }} mb={5}>
         <Button
           variant="brand-outline"
@@ -86,31 +83,27 @@ const EventGrid = () => {
         >
           Filters
         </Button>
-        <Sidebar isOpen={isOpen} onClose={onClose} />
+        <Sidebar isOpen={isOpen} onClose={onClose} filters={filters} onFiltersChange={onFiltersChange} />
       </Box>
 
       {/* Results count */}
       <Flex align="center" justify="space-between" mb={5}>
         <Text fontSize="sm" fontWeight="600" color={mutedColor}>
-          {events.length > 0
-            ? `Showing ${indexOfFirst + 1}–${Math.min(indexOfLast, events.length)} of ${events.length} events`
+          {totalCount > 0
+            ? `Showing ${start}–${end} of ${totalCount} event${totalCount !== 1 ? "s" : ""}`
             : "No events found"}
         </Text>
       </Flex>
 
-      {/* Events grid */}
-      {currentEvents.length === 0 ? (
+      {/* Grid */}
+      {events.length === 0 ? (
         <Center h="240px" flexDirection="column" gap={3}>
-          <Text fontSize="xl" fontWeight="700" color={mutedColor}>No events yet</Text>
-          <Text fontSize="sm" color={mutedColor}>Check back soon or adjust your filters.</Text>
+          <Text fontSize="xl" fontWeight="700" color={mutedColor}>No events found</Text>
+          <Text fontSize="sm" color={mutedColor}>Try adjusting your search or filters.</Text>
         </Center>
       ) : (
-        <SimpleGrid
-          columns={{ base: 1, sm: 2, xl: 3 }}
-          spacing={{ base: 4, md: 5 }}
-          mb={8}
-        >
-          {currentEvents.map((event) => (
+        <SimpleGrid columns={{ base: 1, sm: 2, xl: 3 }} spacing={{ base: 4, md: 5 }} mb={8}>
+          {events.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
         </SimpleGrid>
@@ -126,7 +119,7 @@ const EventGrid = () => {
             borderRadius="full"
             variant="outline"
             borderColor={borderColor}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            onClick={() => setPage(Math.max(1, currentPage - 1))}
             isDisabled={currentPage === 1}
             _hover={{ borderColor: "brand.500", color: "brand.500" }}
           />
@@ -138,24 +131,17 @@ const EventGrid = () => {
                 <Box
                   key={page}
                   as="button"
-                  onClick={() => setCurrentPage(page)}
-                  w="32px"
-                  h="32px"
+                  onClick={() => setPage(page)}
+                  w="32px" h="32px"
                   borderRadius="full"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
+                  display="flex" alignItems="center" justifyContent="center"
                   fontSize="sm"
                   fontWeight={isActive ? "700" : "500"}
                   bg={isActive ? pillActiveBg : pillInactiveBg}
                   color={isActive ? "white" : mutedColor}
                   border="1px solid"
-                  borderColor={isActive ? "brand.600" : pillInactiveBorder}
-                  _hover={
-                    isActive
-                      ? {}
-                      : { borderColor: "brand.400", color: "brand.600" }
-                  }
+                  borderColor={isActive ? "brand.600" : pillBorder}
+                  _hover={isActive ? {} : { borderColor: "brand.400", color: "brand.600" }}
                   transition="all 0.15s ease"
                 >
                   {page}
@@ -171,7 +157,7 @@ const EventGrid = () => {
             borderRadius="full"
             variant="outline"
             borderColor={borderColor}
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
             isDisabled={currentPage === totalPages}
             _hover={{ borderColor: "brand.500", color: "brand.500" }}
           />

@@ -1,48 +1,32 @@
+import { Box, HStack, Button, Icon, useColorModeValue } from "@chakra-ui/react";
 import {
-  Box,
-  HStack,
-  Button,
-  Icon,
-  useColorModeValue,
-} from "@chakra-ui/react";
-import {
-  FiZap,
-  FiMusic,
-  FiCode,
-  FiUsers,
-  FiBookOpen,
-  FiMic,
-  FiStar,
-  FiCoffee,
-  FiCamera,
-  FiActivity,
+  FiZap, FiMusic, FiUsers, FiBookOpen, FiMic,
+  FiHeart, FiStar, FiSunrise, FiMessageCircle, FiAward,
 } from "react-icons/fi";
-import { useState } from "react";
 
 const CATEGORIES = [
-  { label: "All", icon: FiZap },
-  { label: "Music", icon: FiMusic },
-  { label: "Tech", icon: FiCode },
-  { label: "Sports", icon: FiActivity },
-  { label: "Workshops", icon: FiBookOpen },
-  { label: "Conferences", icon: FiMic },
-  { label: "Social", icon: FiCoffee },
-  { label: "Community", icon: FiUsers },
-  { label: "Arts", icon: FiCamera },
-  { label: "Featured", icon: FiStar },
+  { label: "All",        value: "",           icon: FiZap         },
+  { label: "Worship",    value: "worship",    icon: FiHeart       },
+  { label: "Music",      value: "music",      icon: FiMusic       },
+  { label: "Conference", value: "conference", icon: FiMic         },
+  { label: "Seminar",    value: "seminar",    icon: FiBookOpen    },
+  { label: "Fellowship", value: "fellowship", icon: FiUsers       },
+  { label: "Prayer",     value: "prayer",     icon: FiSunrise     },
+  { label: "Youth",      value: "youth",      icon: FiAward       },
+  { label: "Outreach",   value: "outreach",   icon: FiMessageCircle },
+  { label: "Teaching",   value: "teaching",   icon: FiStar        },
 ];
 
 interface Props {
-  onCategoryChange?: (category: string) => void;
+  activeCategory?: string;
+  onCategoryChange: (category: string) => void;
 }
 
-const CategoryFilter = ({ onCategoryChange }: Props) => {
-  const [active, setActive] = useState("All");
-
-  const bg = useColorModeValue("white", "gray.900");
+const CategoryFilter = ({ activeCategory = "", onCategoryChange }: Props) => {
+  const bg          = useColorModeValue("white",    "gray.900");
   const borderColor = useColorModeValue("gray.200", "gray.800");
-  const inactiveColor = useColorModeValue("gray.600", "gray.400");
-  const inactiveHoverBg = useColorModeValue("brand.50", "gray.800");
+  const inactiveColor     = useColorModeValue("gray.600",  "gray.400");
+  const inactiveHoverBg   = useColorModeValue("brand.50",  "gray.800");
   const inactiveHoverColor = useColorModeValue("brand.700", "brand.300");
 
   return (
@@ -65,11 +49,11 @@ const CategoryFilter = ({ onCategoryChange }: Props) => {
         w="max-content"
         minW="full"
       >
-        {CATEGORIES.map(({ label, icon }) => {
-          const isActive = active === label;
+        {CATEGORIES.map(({ label, value, icon }) => {
+          const isActive = activeCategory === value;
           return (
             <Button
-              key={label}
+              key={value}
               size="sm"
               variant={isActive ? "brand" : "ghost"}
               leftIcon={<Icon as={icon} boxSize={3.5} />}
@@ -80,15 +64,8 @@ const CategoryFilter = ({ onCategoryChange }: Props) => {
               fontSize="sm"
               flexShrink={0}
               color={isActive ? "white" : inactiveColor}
-              _hover={
-                isActive
-                  ? {}
-                  : { bg: inactiveHoverBg, color: inactiveHoverColor }
-              }
-              onClick={() => {
-                setActive(label);
-                onCategoryChange?.(label);
-              }}
+              _hover={isActive ? {} : { bg: inactiveHoverBg, color: inactiveHoverColor }}
+              onClick={() => onCategoryChange(value)}
             >
               {label}
             </Button>

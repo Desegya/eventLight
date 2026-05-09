@@ -1,18 +1,22 @@
 import { useState, useEffect } from "react";
-import { Event, CreateEventData, UpdateEventData } from "../types/event";
+import { Event, CreateEventData, UpdateEventData, EventFilters } from "../types/event";
 import { apiService, ApiError } from "../services/api";
 
-export const useEvents = () => {
+export const useEvents = (filters?: Partial<EventFilters>) => {
   const [events, setEvents] = useState<Event[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const filtersKey = JSON.stringify(filters ?? {});
 
   const fetchEvents = async () => {
     try {
       setLoading(true);
       setError(null);
-      const eventsData = await apiService.getEvents();
-      setEvents(eventsData);
+      const data = await apiService.getEvents(filters);
+      setEvents(data.results);
+      setTotalCount(data.count);
     } catch (err) {
       if (err instanceof ApiError) {
         setError(`Failed to fetch events: ${err.message}`);
@@ -26,7 +30,8 @@ export const useEvents = () => {
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtersKey]);
 
   const createEvent = async (
     eventData: CreateEventData
@@ -85,6 +90,7 @@ export const useEvents = () => {
 
   return {
     events,
+    totalCount,
     loading,
     error,
     fetchEvents,

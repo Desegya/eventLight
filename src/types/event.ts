@@ -44,3 +44,20 @@ export interface UpdateEventData {
   age_group?: string;
   image?: File | null;
 }
+
+export interface EventFilters {
+  search?: string;
+  category?: string;
+  pricing?: string;
+  language?: string;
+  age_group?: string;
+  ordering?: string;
+  page: number;
+}
+
+export interface PaginatedEvents {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Event[];
+}

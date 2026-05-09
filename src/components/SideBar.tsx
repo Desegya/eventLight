@@ -20,64 +20,111 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import {
-  FiCalendar,
-  FiMapPin,
   FiTag,
   FiUsers,
   FiGlobe,
   FiDollarSign,
   FiSliders,
   FiX,
+  FiArrowUpRight,
 } from "react-icons/fi";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { EventFilters } from "../types/event";
 
-const CATEGORIES = ["Music", "Sports", "Conferences", "Workshops", "Tech", "Arts"];
-const DATE_OPTIONS = ["Today", "This Week", "This Weekend", "This Month", "Upcoming"];
-const LOCATIONS = ["New York", "Los Angeles", "Chicago", "Houston", "Online"];
-const EVENT_TYPES = ["Concert", "Seminar", "Workshop", "Retreat", "Meetup"];
-const AGE_GROUPS = ["Family", "Youth", "Adults", "Seniors", "All Ages"];
-const LANGUAGES = ["English", "Spanish", "French", "German", "Portuguese"];
+const EVENT_TYPES = [
+  { label: "Church Service",  value: "church_service"  },
+  { label: "Bible Study",     value: "bible_study"     },
+  { label: "Prayer Meeting",  value: "prayer_meeting"  },
+  { label: "Fellowship",      value: "fellowship"      },
+  { label: "Conference",      value: "conference"      },
+  { label: "Seminar",         value: "seminar"         },
+  { label: "Outreach",        value: "outreach"        },
+  { label: "Special Event",   value: "special_event"   },
+];
+
+const AGE_GROUPS = [
+  { label: "All Ages",      value: "all_ages"     },
+  { label: "Children",      value: "children"     },
+  { label: "Teenagers",     value: "teenagers"    },
+  { label: "Young Adults",  value: "young_adults" },
+  { label: "Adults",        value: "adults"       },
+  { label: "Seniors",       value: "seniors"      },
+];
+
+const LANGUAGES = [
+  { label: "English",       value: "english"      },
+  { label: "Yoruba",        value: "yoruba"       },
+  { label: "Igbo",          value: "igbo"         },
+  { label: "Hausa",         value: "hausa"        },
+  { label: "Pidgin",        value: "pidgin"       },
+  { label: "French",        value: "french"       },
+  { label: "Multilingual",  value: "multilingual" },
+];
+
+const SORT_OPTIONS = [
+  { label: "Soonest first",  value: "date"        },
+  { label: "Latest first",   value: "-date"       },
+  { label: "Newest added",   value: "-created_at" },
+  { label: "A → Z",          value: "title"       },
+];
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  filters: EventFilters;
+  onFiltersChange: (patch: Partial<EventFilters>) => void;
 }
 
-const SidebarContent = ({ onClear }: { onClear: () => void }) => {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
-  const [selectedAgeGroups, setSelectedAgeGroups] = useState<string[]>([]);
-  const [selectedLanguage, setSelectedLanguage] = useState("");
-  const [selectedPricing, setSelectedPricing] = useState<string[]>([]);
+const SidebarContent = ({
+  filters,
+  onFiltersChange,
+  onClose,
+}: {
+  filters: EventFilters;
+  onFiltersChange: (patch: Partial<EventFilters>) => void;
+  onClose?: () => void;
+}) => {
+  // Local draft — only committed on "Apply"
+  const [pricing,   setPricing]   = useState<string>(filters.pricing   ?? "");
+  const [language,  setLanguage]  = useState<string>(filters.language  ?? "");
+  const [ageGroup,  setAgeGroup]  = useState<string>(filters.age_group ?? "");
+  const [ordering,  setOrdering]  = useState<string>(filters.ordering  ?? "");
+
+  // Stay in sync if parent clears filters externally
+  useEffect(() => {
+    setPricing(filters.pricing   ?? "");
+    setLanguage(filters.language  ?? "");
+    setAgeGroup(filters.age_group ?? "");
+    setOrdering(filters.ordering  ?? "");
+  }, [filters.pricing, filters.language, filters.age_group, filters.ordering]);
 
   const headingColor = useColorModeValue("gray.900", "white");
-  const labelColor = useColorModeValue("gray.700", "gray.300");
-  const mutedColor = useColorModeValue("gray.500", "gray.400");
-  const sectionBg = useColorModeValue("gray.50", "gray.800");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const selectBg = useColorModeValue("white", "gray.700");
-
-  const handleClearAll = () => {
-    setSelectedCategories([]);
-    setSelectedDate("");
-    setSelectedLocation("");
-    setSelectedEventTypes([]);
-    setSelectedAgeGroups([]);
-    setSelectedLanguage("");
-    setSelectedPricing([]);
-    onClear();
-  };
+  const labelColor   = useColorModeValue("gray.700", "gray.300");
+  const mutedColor   = useColorModeValue("gray.500", "gray.400");
+  const borderColor  = useColorModeValue("gray.200", "gray.700");
+  const selectBg     = useColorModeValue("white",    "gray.700");
 
   const activeCount =
-    selectedCategories.length +
-    selectedEventTypes.length +
-    selectedAgeGroups.length +
-    selectedPricing.length +
-    (selectedDate ? 1 : 0) +
-    (selectedLocation ? 1 : 0) +
-    (selectedLanguage ? 1 : 0);
+    (pricing   ? 1 : 0) +
+    (language  ? 1 : 0) +
+    (ageGroup  ? 1 : 0) +
+    (ordering  ? 1 : 0);
+
+  const handleClear = () => {
+    setPricing(""); setLanguage(""); setAgeGroup(""); setOrdering("");
+    onFiltersChange({ pricing: undefined, language: undefined, age_group: undefined, ordering: undefined, page: 1 });
+  };
+
+  const handleApply = () => {
+    onFiltersChange({
+      pricing:   pricing   || undefined,
+      language:  language  || undefined,
+      age_group: ageGroup  || undefined,
+      ordering:  ordering  || undefined,
+      page: 1,
+    });
+    onClose?.();
+  };
 
   return (
     <Box w="full" pb={6}>
@@ -85,19 +132,11 @@ const SidebarContent = ({ onClear }: { onClear: () => void }) => {
       <Flex align="center" justify="space-between" mb={5}>
         <HStack spacing={2}>
           <Icon as={FiSliders} boxSize={4} color="brand.500" />
-          <Text fontWeight="700" fontSize="md" color={headingColor}>
-            Filter Events
-          </Text>
+          <Text fontWeight="700" fontSize="md" color={headingColor}>Filter Events</Text>
           {activeCount > 0 && (
             <Box
-              bg="brand.600"
-              color="white"
-              borderRadius="full"
-              px={2}
-              py={0.5}
-              fontSize="xs"
-              fontWeight="700"
-              lineHeight="1.4"
+              bg="brand.600" color="white" borderRadius="full"
+              px={2} py={0.5} fontSize="xs" fontWeight="700" lineHeight="1.4"
             >
               {activeCount}
             </Box>
@@ -105,12 +144,9 @@ const SidebarContent = ({ onClear }: { onClear: () => void }) => {
         </HStack>
         {activeCount > 0 && (
           <Button
-            size="xs"
-            variant="ghost"
-            color={mutedColor}
+            size="xs" variant="ghost" color={mutedColor}
             leftIcon={<FiX size={12} />}
-            onClick={handleClearAll}
-            borderRadius="full"
+            onClick={handleClear} borderRadius="full"
             _hover={{ color: "red.400", bg: "red.50" }}
           >
             Clear all
@@ -119,83 +155,22 @@ const SidebarContent = ({ onClear }: { onClear: () => void }) => {
       </Flex>
 
       <VStack align="stretch" spacing={5}>
-        {/* Categories */}
-        <Box>
-          <HStack spacing={2} mb={3}>
-            <Icon as={FiTag} boxSize={3.5} color="brand.500" />
-            <Text fontSize="xs" fontWeight="700" color={mutedColor} textTransform="uppercase" letterSpacing="0.08em">
-              Category
-            </Text>
-          </HStack>
-          <CheckboxGroup
-            value={selectedCategories}
-            onChange={(v) => setSelectedCategories(v as string[])}
-          >
-            <VStack align="stretch" spacing={2}>
-              {CATEGORIES.map((cat) => (
-                <Checkbox
-                  key={cat}
-                  value={cat}
-                  colorScheme="brand"
-                  size="sm"
-                >
-                  <Text fontSize="sm" color={labelColor} fontWeight="500">{cat}</Text>
-                </Checkbox>
-              ))}
-            </VStack>
-          </CheckboxGroup>
-        </Box>
 
-        <Divider borderColor={borderColor} />
-
-        {/* Date */}
+        {/* Sort */}
         <Box>
-          <HStack spacing={2} mb={3}>
-            <Icon as={FiCalendar} boxSize={3.5} color="brand.500" />
-            <Text fontSize="xs" fontWeight="700" color={mutedColor} textTransform="uppercase" letterSpacing="0.08em">
-              Date
-            </Text>
-          </HStack>
+          <Text fontSize="xs" fontWeight="700" color={mutedColor} textTransform="uppercase" letterSpacing="0.08em" mb={3}>
+            Sort by
+          </Text>
           <Select
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            placeholder="Any time"
-            size="sm"
-            borderRadius="lg"
-            bg={selectBg}
-            borderColor={borderColor}
-            fontSize="sm"
+            value={ordering}
+            onChange={(e) => setOrdering(e.target.value)}
+            placeholder="Default order"
+            size="sm" borderRadius="lg"
+            bg={selectBg} borderColor={borderColor} fontSize="sm"
             _focus={{ borderColor: "brand.500", boxShadow: "0 0 0 3px rgba(139,92,246,0.15)" }}
           >
-            {DATE_OPTIONS.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </Select>
-        </Box>
-
-        <Divider borderColor={borderColor} />
-
-        {/* Location */}
-        <Box>
-          <HStack spacing={2} mb={3}>
-            <Icon as={FiMapPin} boxSize={3.5} color="brand.500" />
-            <Text fontSize="xs" fontWeight="700" color={mutedColor} textTransform="uppercase" letterSpacing="0.08em">
-              Location
-            </Text>
-          </HStack>
-          <Select
-            value={selectedLocation}
-            onChange={(e) => setSelectedLocation(e.target.value)}
-            placeholder="Anywhere"
-            size="sm"
-            borderRadius="lg"
-            bg={selectBg}
-            borderColor={borderColor}
-            fontSize="sm"
-            _focus={{ borderColor: "brand.500", boxShadow: "0 0 0 3px rgba(139,92,246,0.15)" }}
-          >
-            {LOCATIONS.map((l) => (
-              <option key={l} value={l}>{l}</option>
+            {SORT_OPTIONS.map(({ label, value }) => (
+              <option key={value} value={value}>{label}</option>
             ))}
           </Select>
         </Box>
@@ -211,8 +186,8 @@ const SidebarContent = ({ onClear }: { onClear: () => void }) => {
             </Text>
           </HStack>
           <CheckboxGroup
-            value={selectedPricing}
-            onChange={(v) => setSelectedPricing(v as string[])}
+            value={pricing ? [pricing] : []}
+            onChange={(v) => setPricing((v as string[])[v.length - 1] ?? "")}
           >
             <HStack spacing={4}>
               <Checkbox value="free" colorScheme="brand" size="sm">
@@ -227,26 +202,26 @@ const SidebarContent = ({ onClear }: { onClear: () => void }) => {
 
         <Divider borderColor={borderColor} />
 
-        {/* Event Type */}
+        {/* Language */}
         <Box>
           <HStack spacing={2} mb={3}>
-            <Icon as={FiUsers} boxSize={3.5} color="brand.500" />
+            <Icon as={FiGlobe} boxSize={3.5} color="brand.500" />
             <Text fontSize="xs" fontWeight="700" color={mutedColor} textTransform="uppercase" letterSpacing="0.08em">
-              Event Type
+              Language
             </Text>
           </HStack>
-          <CheckboxGroup
-            value={selectedEventTypes}
-            onChange={(v) => setSelectedEventTypes(v as string[])}
+          <Select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            placeholder="Any language"
+            size="sm" borderRadius="lg"
+            bg={selectBg} borderColor={borderColor} fontSize="sm"
+            _focus={{ borderColor: "brand.500", boxShadow: "0 0 0 3px rgba(139,92,246,0.15)" }}
           >
-            <VStack align="stretch" spacing={2}>
-              {EVENT_TYPES.map((t) => (
-                <Checkbox key={t} value={t} colorScheme="brand" size="sm">
-                  <Text fontSize="sm" color={labelColor} fontWeight="500">{t}</Text>
-                </Checkbox>
-              ))}
-            </VStack>
-          </CheckboxGroup>
+            {LANGUAGES.map(({ label, value }) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </Select>
         </Box>
 
         <Divider borderColor={borderColor} />
@@ -259,49 +234,26 @@ const SidebarContent = ({ onClear }: { onClear: () => void }) => {
               Age Group
             </Text>
           </HStack>
-          <CheckboxGroup
-            value={selectedAgeGroups}
-            onChange={(v) => setSelectedAgeGroups(v as string[])}
-          >
-            <VStack align="stretch" spacing={2}>
-              {AGE_GROUPS.map((g) => (
-                <Checkbox key={g} value={g} colorScheme="brand" size="sm">
-                  <Text fontSize="sm" color={labelColor} fontWeight="500">{g}</Text>
-                </Checkbox>
-              ))}
-            </VStack>
-          </CheckboxGroup>
-        </Box>
-
-        <Divider borderColor={borderColor} />
-
-        {/* Language */}
-        <Box>
-          <HStack spacing={2} mb={3}>
-            <Icon as={FiGlobe} boxSize={3.5} color="brand.500" />
-            <Text fontSize="xs" fontWeight="700" color={mutedColor} textTransform="uppercase" letterSpacing="0.08em">
-              Language
-            </Text>
-          </HStack>
           <Select
-            value={selectedLanguage}
-            onChange={(e) => setSelectedLanguage(e.target.value)}
-            placeholder="Any language"
-            size="sm"
-            borderRadius="lg"
-            bg={selectBg}
-            borderColor={borderColor}
-            fontSize="sm"
+            value={ageGroup}
+            onChange={(e) => setAgeGroup(e.target.value)}
+            placeholder="All ages"
+            size="sm" borderRadius="lg"
+            bg={selectBg} borderColor={borderColor} fontSize="sm"
             _focus={{ borderColor: "brand.500", boxShadow: "0 0 0 3px rgba(139,92,246,0.15)" }}
           >
-            {LANGUAGES.map((l) => (
-              <option key={l} value={l}>{l}</option>
+            {AGE_GROUPS.map(({ label, value }) => (
+              <option key={value} value={value}>{label}</option>
             ))}
           </Select>
         </Box>
 
-        {/* Apply button */}
-        <Button variant="brand" borderRadius="xl" size="sm" w="full" mt={2}>
+        {/* Apply */}
+        <Button
+          variant="brand" borderRadius="xl" size="sm" w="full" mt={2}
+          rightIcon={<FiArrowUpRight size={14} />}
+          onClick={handleApply}
+        >
           Apply Filters
         </Button>
       </VStack>
@@ -309,9 +261,9 @@ const SidebarContent = ({ onClear }: { onClear: () => void }) => {
   );
 };
 
-const Sidebar = ({ isOpen, onClose }: Props) => {
-  const isMobile = useBreakpointValue({ base: true, lg: false });
-  const drawerBg = useColorModeValue("white", "gray.900");
+const Sidebar = ({ isOpen, onClose, filters, onFiltersChange }: Props) => {
+  const isMobile    = useBreakpointValue({ base: true, lg: false });
+  const drawerBg    = useColorModeValue("white",    "gray.900");
   const borderColor = useColorModeValue("gray.200", "gray.800");
 
   if (isMobile) {
@@ -324,7 +276,7 @@ const Sidebar = ({ isOpen, onClose }: Props) => {
             Filters
           </DrawerHeader>
           <DrawerBody px={5} py={5} overflowY="auto">
-            <SidebarContent onClear={onClose} />
+            <SidebarContent filters={filters} onFiltersChange={onFiltersChange} onClose={onClose} />
           </DrawerBody>
         </DrawerContent>
       </Drawer>
@@ -339,7 +291,7 @@ const Sidebar = ({ isOpen, onClose }: Props) => {
       bg={useColorModeValue("white", "gray.800")}
       p={5}
     >
-      <SidebarContent onClear={() => {}} />
+      <SidebarContent filters={filters} onFiltersChange={onFiltersChange} />
     </Box>
   );
 };

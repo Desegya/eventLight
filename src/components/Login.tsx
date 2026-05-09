@@ -10,7 +10,6 @@ import {
   Text,
   HStack,
   IconButton,
-  Icon,
   InputGroup,
   InputRightElement,
   Alert,
@@ -20,7 +19,7 @@ import {
   useColorModeValue,
   Flex,
 } from "@chakra-ui/react";
-import { FiEye, FiEyeOff, FiArrowLeft, FiMail, FiLock } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiArrowLeft } from "react-icons/fi";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import logo from "../assets/logo.svg";

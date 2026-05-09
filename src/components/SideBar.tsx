@@ -20,7 +20,6 @@ import {
   Divider,
 } from "@chakra-ui/react";
 import {
-  FiTag,
   FiUsers,
   FiGlobe,
   FiDollarSign,
@@ -30,17 +29,6 @@ import {
 } from "react-icons/fi";
 import { useState, useEffect } from "react";
 import { EventFilters } from "../types/event";
-
-const EVENT_TYPES = [
-  { label: "Church Service",  value: "church_service"  },
-  { label: "Bible Study",     value: "bible_study"     },
-  { label: "Prayer Meeting",  value: "prayer_meeting"  },
-  { label: "Fellowship",      value: "fellowship"      },
-  { label: "Conference",      value: "conference"      },
-  { label: "Seminar",         value: "seminar"         },
-  { label: "Outreach",        value: "outreach"        },
-  { label: "Special Event",   value: "special_event"   },
-];
 
 const AGE_GROUPS = [
   { label: "All Ages",      value: "all_ages"     },

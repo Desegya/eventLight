@@ -15,7 +15,6 @@ import {
   useColorModeValue,
   useToast,
   Badge,
-  Divider,
 } from "@chakra-ui/react";
 import {
   FiCamera,

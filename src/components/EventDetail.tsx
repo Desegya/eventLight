@@ -14,7 +14,6 @@ import {
   Spinner,
   Center,
   useColorModeValue,
-  Divider,
   AspectRatio,
   Tooltip,
   useToast,

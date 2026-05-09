@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Heading,
@@ -73,7 +73,7 @@ const ApiTest = () => {
                     📍 {event.location}
                   </Text>
                   <Text fontSize="sm" color="gray.600">
-                    🏷️ {event.category} • {event.event_type.replace(/_/g, " ")}
+                    🏷️ {event.category.name}
                   </Text>
                   <Text fontSize="sm" color="gray.600">
                     🗣️ {event.language} • 👥{" "}

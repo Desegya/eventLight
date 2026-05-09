@@ -28,7 +28,6 @@ import {
   VStack,
   Divider,
   Icon,
-  Badge,
 } from "@chakra-ui/react";
 import {
   FiPlus,

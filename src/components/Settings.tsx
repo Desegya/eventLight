@@ -52,12 +52,12 @@ import {
 } from "react-icons/fi";
 import { useAuth } from "../contexts/AuthContext";
 import { authService } from "../services/auth";
+import { useCategories } from "../hooks/useCategories";
 
 const fmt = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-const CATEGORIES = ["worship", "prayer", "fellowship", "bible_study", "outreach", "youth", "children", "music", "community_service"];
-const LANGUAGES = ["english", "yoruba", "igbo", "hausa", "french", "spanish"];
-const AGE_GROUPS = ["children", "youth", "young_adults", "adults", "seniors"];
+const LANGUAGES = ["english", "yoruba", "igbo", "hausa", "pidgin", "french", "multilingual"];
+const AGE_GROUPS = ["all_ages", "children", "teenagers", "young_adults", "adults", "seniors"];
 
 const SectionCard = ({ icon, label, children }: { icon: React.ElementType; label: string; children: React.ReactNode }) => {
   const cardBg = useColorModeValue("white", "gray.800");
@@ -165,6 +165,8 @@ const Settings = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   const isDark = colorMode === "dark";
   const toast = useToast();
+  const { categories: allCategories } = useCategories();
+  const categorySlugList = allCategories.map((c) => c.slug);
 
   const mutedColor = useColorModeValue("gray.500", "gray.400");
 
@@ -276,7 +278,7 @@ const Settings = () => {
             label="Preferred Categories"
             icon={FiTag}
             selected={categories}
-            available={CATEGORIES}
+            available={categorySlugList}
             onAdd={addCategory}
             onRemove={removeCategory}
             colorScheme="purple"

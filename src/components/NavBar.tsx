@@ -51,7 +51,8 @@ import { IoPersonOutline } from "react-icons/io5";
 import logo from "../assets/logo.svg";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+import { apiService } from "../services/api";
 
 interface Props {
   onSearch: (searchText: string) => void;
@@ -67,6 +68,14 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
   const searchRef = useRef<HTMLInputElement>(null);
 
   const isAuthenticated = !!user;
+
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    if (!isAuthenticated) { setUnreadCount(0); return; }
+    apiService.getUnreadNotificationCount()
+      .then((res) => setUnreadCount(res.count))
+      .catch(() => {});
+  }, [isAuthenticated]);
 
   // All hooks called unconditionally — transparent toggles which value is used, not which hook runs
   const navBgOpaque = useColorModeValue("rgba(255,255,255,0.88)", "rgba(15,23,42,0.88)");
@@ -201,24 +210,33 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
               </Link>
 
               {/* Notifications */}
-              <Menu>
-                <MenuButton
-                  as={IconButton}
+              <Link to="/dashboard/notifications">
+                <IconButton
                   aria-label="Notifications"
                   icon={
                     <Box position="relative" display="inline-flex">
                       <FiBell size={16} />
-                      <Box
-                        position="absolute"
-                        top="-4px"
-                        right="-4px"
-                        w="8px"
-                        h="8px"
-                        borderRadius="full"
-                        bg="brand.500"
-                        border="1.5px solid"
-                        borderColor={isDark ? "gray.900" : "white"}
-                      />
+                      {unreadCount > 0 && (
+                        <Box
+                          position="absolute"
+                          top="-4px"
+                          right="-4px"
+                          minW="14px"
+                          h="14px"
+                          borderRadius="full"
+                          bg="brand.500"
+                          border="1.5px solid"
+                          borderColor={isDark ? "gray.900" : "white"}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="center"
+                          px="2px"
+                        >
+                          <Text fontSize="8px" fontWeight="800" color="white" lineHeight="1">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                          </Text>
+                        </Box>
+                      )}
                     </Box>
                   }
                   variant="ghost"
@@ -227,43 +245,7 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
                   color={mutedColor}
                   _hover={{ bg: isDark ? "gray.800" : "gray.100" }}
                 />
-                <MenuList
-                  bg={menuBg}
-                  borderColor={menuBorder}
-                  boxShadow="0 20px 60px rgba(0,0,0,0.15)"
-                  borderRadius="2xl"
-                  p={2}
-                  minW="300px"
-                >
-                  <Text
-                    px={3}
-                    py={1}
-                    fontWeight="700"
-                    fontSize="sm"
-                    color={mutedColor}
-                    mb={1}
-                  >
-                    Notifications
-                  </Text>
-                  {[
-                    { title: "Event Reminder", body: "Your event starts in 2 hours!" },
-                    { title: "New Event Near You", body: "A new event was added to your area." },
-                    { title: "Update Available", body: "Check out new features in EventLight." },
-                  ].map(({ title, body }) => (
-                    <MenuItem
-                      key={title}
-                      borderRadius="xl"
-                      py={3}
-                      _hover={{ bg: menuHoverBg }}
-                    >
-                      <Box>
-                        <Text fontWeight="600" fontSize="sm">{title}</Text>
-                        <Text fontSize="xs" color={mutedColor}>{body}</Text>
-                      </Box>
-                    </MenuItem>
-                  ))}
-                </MenuList>
-              </Menu>
+              </Link>
 
               {/* Account */}
               <Menu>

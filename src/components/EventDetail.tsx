@@ -37,6 +37,7 @@ import { useEvent } from "../hooks/useEvents";
 import { useEventInteractions } from "../hooks/useEventInteractions";
 import { format, parseISO, isPast } from "date-fns";
 import { useAuth } from "../contexts/AuthContext";
+import { apiService } from "../services/api";
 
 const fmt = (snake: string) =>
   snake.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -115,6 +116,7 @@ const EventDetail = () => {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [likeLoading, setLikeLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [rsvpLoading, setRsvpLoading] = useState(false);
 
   useEffect(() => { setLocalEvent(event); }, [event]);
 
@@ -203,6 +205,21 @@ const EventDetail = () => {
     }
   };
 
+  const handleRsvp = async () => {
+    if (!isAuthenticated) { navigate("/auth/login"); return; }
+    if (!localEvent) return;
+    setRsvpLoading(true);
+    try {
+      const res = await apiService.toggleRsvp(localEvent.id);
+      setLocalEvent((prev) => prev ? { ...prev, is_rsvped: res.rsvped, rsvp_count: res.rsvp_count } : prev);
+      toast({ title: res.message, status: "success", duration: 3000, isClosable: true, position: "top-right" });
+    } catch (err: any) {
+      toast({ title: err.message || "Could not update RSVP", status: "error", duration: 3000, isClosable: true, position: "top-right" });
+    } finally {
+      setRsvpLoading(false);
+    }
+  };
+
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href).then(() => {
       toast({ title: "Link copied!", status: "info", duration: 2000, isClosable: true, position: "top-right" });
@@ -258,7 +275,7 @@ const EventDetail = () => {
                 fontWeight="700"
                 textTransform="capitalize"
               >
-                {event.category}
+                {event.category.name}
               </Badge>
               <Badge
                 colorScheme={event.pricing === "free" ? "green" : "orange"}
@@ -394,8 +411,7 @@ const EventDetail = () => {
                 value={event.location}
                 onClick={() => window.open(`https://www.google.com/maps?q=${mapQuery}`, "_blank", "noopener")}
               />
-              <MetaRow icon={FiTag} label="Category" value={fmt(event.category)} />
-              {event.event_type && <MetaRow icon={FiCalendar} label="Event Type" value={fmt(event.event_type)} />}
+              <MetaRow icon={FiTag} label="Category" value={event.category.name} />
               {event.language && <MetaRow icon={FiGlobe} label="Language" value={fmt(event.language)} />}
               {event.age_group && <MetaRow icon={FiUsers} label="Age Group" value={fmt(event.age_group)} />}
 
@@ -472,13 +488,21 @@ const EventDetail = () => {
                 </Text>
                 <VStack spacing={2.5} align="stretch">
                   <Button
-                    variant="brand"
+                    variant={localEvent?.is_rsvped ? "brand-outline" : "brand"}
                     borderRadius="full"
                     size="md"
                     w="full"
-                    isDisabled={eventPast}
+                    isDisabled={eventPast || (!localEvent?.is_rsvped && !!localEvent?.is_full)}
+                    isLoading={rsvpLoading}
+                    onClick={handleRsvp}
                   >
-                    {eventPast ? "Event ended" : "Register / RSVP"}
+                    {eventPast
+                      ? "Event ended"
+                      : localEvent?.is_full && !localEvent?.is_rsvped
+                      ? "Event full"
+                      : localEvent?.is_rsvped
+                      ? "Cancel RSVP"
+                      : "RSVP — I'm going"}
                   </Button>
                   <Button
                     variant="brand-outline"
@@ -492,7 +516,12 @@ const EventDetail = () => {
                     {localEvent?.is_saved ? "Saved" : "Save for later"}
                   </Button>
                 </VStack>
-                <Text fontSize="xs" color={mutedColor} textAlign="center" mt={3}>
+                {(localEvent?.rsvp_count ?? 0) > 0 && (
+                  <Text fontSize="xs" color={mutedColor} textAlign="center" mt={2} fontWeight="600">
+                    {localEvent?.rsvp_count} {localEvent?.rsvp_count === 1 ? "person is" : "people are"} going
+                  </Text>
+                )}
+                <Text fontSize="xs" color={mutedColor} textAlign="center" mt={1}>
                   You'll get a reminder 24 hours before the event.
                 </Text>
               </Box>
@@ -516,12 +545,12 @@ const EventDetail = () => {
                     flexShrink={0}
                   >
                     <Text color="white" fontWeight="700" fontSize="sm">
-                      {String(event.created_by).charAt(0)}
+                      {(event.organizer || event.created_by.first_name || "?").charAt(0).toUpperCase()}
                     </Text>
                   </Box>
                   <Box>
                     <Text fontWeight="700" fontSize="sm" color={headingColor}>
-                      User #{event.created_by}
+                      {event.organizer || `${event.created_by.first_name} ${event.created_by.last_name}`.trim() || "Organizer"}
                     </Text>
                     <Text fontSize="xs" color={mutedColor}>Event organizer</Text>
                   </Box>

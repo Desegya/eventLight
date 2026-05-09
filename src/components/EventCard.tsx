@@ -223,7 +223,7 @@ const EventCard = ({ event, onEventUpdate }: EventCardProps) => {
               fontWeight="600"
               textTransform="capitalize"
             >
-              {event.category}
+              {event.category.name}
             </Badge>
           </Box>
         </AspectRatio>

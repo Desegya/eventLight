@@ -11,9 +11,10 @@ import {
   Collapse,
   Divider,
   Center,
+  Spinner,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   FiBell,
   FiTrash2,
@@ -21,61 +22,27 @@ import {
   FiCheckCircle,
   FiCalendar,
   FiHeart,
-  FiBookmark,
   FiInfo,
   FiChevronDown,
   FiChevronUp,
+  FiAlertCircle,
 } from "react-icons/fi";
+import { Notification } from "../types/event";
+import { apiService } from "../services/api";
+import { formatDistanceToNow, parseISO } from "date-fns";
 
-type NotifType = "reminder" | "like" | "save" | "info" | "event";
+type NotifMeta = { icon: React.ElementType; color: string; bg: string };
 
-interface Notification {
-  id: number;
-  type: NotifType;
-  title: string;
-  body: string;
-  detail: string;
-  timestamp: string;
-  isRead: boolean;
-}
-
-const TYPE_META: Record<NotifType, { icon: React.ElementType; color: string; bg: string }> = {
-  reminder: { icon: FiCalendar, color: "brand.500", bg: "brand.50" },
-  like:     { icon: FiHeart,    color: "red.400",   bg: "red.50"   },
-  save:     { icon: FiBookmark, color: "teal.500",  bg: "teal.50"  },
-  info:     { icon: FiInfo,     color: "blue.500",  bg: "blue.50"  },
-  event:    { icon: FiBell,     color: "orange.500", bg: "orange.50" },
+const TYPE_META: Record<string, NotifMeta> = {
+  reminder:        { icon: FiCalendar,     color: "brand.500",  bg: "brand.50"  },
+  event_approved:  { icon: FiCheckCircle,  color: "green.500",  bg: "green.50"  },
+  event_rejected:  { icon: FiAlertCircle,  color: "red.400",    bg: "red.50"    },
+  new_event_nearby:{ icon: FiInfo,         color: "blue.500",   bg: "blue.50"   },
+  rsvp_confirmed:  { icon: FiHeart,        color: "brand.500",  bg: "brand.50"  },
+  event_cancelled: { icon: FiBell,         color: "orange.500", bg: "orange.50" },
 };
 
-const SEED: Notification[] = [
-  {
-    id: 1,
-    type: "reminder",
-    title: "Event starts tomorrow",
-    body: "Shiloh 2024 is tomorrow. Don't miss it!",
-    detail: "You saved this event earlier. It kicks off tomorrow at 9 AM at Faith Arena, Ota. Make sure you plan your travel.",
-    timestamp: "2 hours ago",
-    isRead: false,
-  },
-  {
-    id: 2,
-    type: "event",
-    title: "New event in your area",
-    body: "A worship night just dropped near you.",
-    detail: "Kingdom Worship Night has been added near Lagos. It matches your preferred categories. Check it out before spots fill up.",
-    timestamp: "5 hours ago",
-    isRead: false,
-  },
-  {
-    id: 3,
-    type: "info",
-    title: "Welcome to eventlight",
-    body: "Discover events that move you.",
-    detail: "Thanks for joining eventlight. Browse thousands of events near you — worship nights, conferences, fellowships, and more. Save, like, and share the ones you love.",
-    timestamp: "Yesterday",
-    isRead: true,
-  },
-];
+const FALLBACK_META: NotifMeta = { icon: FiBell, color: "gray.500", bg: "gray.100" };
 
 const NotifCard = ({
   notif,
@@ -88,21 +55,27 @@ const NotifCard = ({
 }) => {
   const [open, setOpen] = useState(false);
 
-  const cardBg = useColorModeValue("white", "gray.800");
-  const unreadBg = useColorModeValue("brand.50", "gray.750");
-  const borderColor = useColorModeValue("gray.200", "gray.700");
-  const unreadBorder = useColorModeValue("brand.100", "brand.900");
-  const mutedColor = useColorModeValue("gray.500", "gray.400");
-  const headingColor = useColorModeValue("gray.800", "white");
-  const detailColor = useColorModeValue("gray.600", "gray.300");
+  const cardBg       = useColorModeValue("white",      "gray.800");
+  const unreadBg     = useColorModeValue("brand.50",   "gray.750");
+  const borderColor  = useColorModeValue("gray.200",   "gray.700");
+  const unreadBorder = useColorModeValue("brand.100",  "brand.900");
+  const mutedColor   = useColorModeValue("gray.500",   "gray.400");
+  const headingColor = useColorModeValue("gray.800",   "white");
+  const detailColor  = useColorModeValue("gray.600",   "gray.300");
+  const hoverBg      = useColorModeValue("gray.50",    "gray.750");
 
-  const meta = TYPE_META[notif.type];
+  const meta = TYPE_META[notif.type] ?? FALLBACK_META;
+
+  const timeAgo = (() => {
+    try { return formatDistanceToNow(parseISO(notif.created_at), { addSuffix: true }); }
+    catch { return ""; }
+  })();
 
   return (
     <Box
-      bg={notif.isRead ? cardBg : unreadBg}
+      bg={notif.is_read ? cardBg : unreadBg}
       border="1px solid"
-      borderColor={notif.isRead ? borderColor : unreadBorder}
+      borderColor={notif.is_read ? borderColor : unreadBorder}
       borderRadius="2xl"
       overflow="hidden"
       transition="all 0.15s ease"
@@ -113,39 +86,35 @@ const NotifCard = ({
         spacing={4}
         align="flex-start"
         cursor="pointer"
-        onClick={() => { setOpen(!open); if (!notif.isRead) onMarkRead(notif.id); }}
-        _hover={{ bg: useColorModeValue("gray.50", "gray.750") }}
+        onClick={() => { setOpen(!open); if (!notif.is_read) onMarkRead(notif.id); }}
+        _hover={{ bg: hoverBg }}
       >
-        {/* Icon */}
         <Box
           w="38px" h="38px" borderRadius="xl"
           bg={meta.bg}
           display="flex" alignItems="center" justifyContent="center"
-          flexShrink={0}
-          mt={0.5}
+          flexShrink={0} mt={0.5}
         >
           <Icon as={meta.icon} boxSize={4} color={meta.color} />
         </Box>
 
-        {/* Content */}
         <Box flex={1} minW={0}>
           <HStack spacing={2} mb={0.5}>
-            <Text fontWeight={notif.isRead ? "600" : "700"} fontSize="sm" color={headingColor} noOfLines={1}>
+            <Text fontWeight={notif.is_read ? "600" : "700"} fontSize="sm" color={headingColor} noOfLines={1}>
               {notif.title}
             </Text>
-            {!notif.isRead && (
+            {!notif.is_read && (
               <Box w="6px" h="6px" borderRadius="full" bg="brand.500" flexShrink={0} />
             )}
           </HStack>
           <Text fontSize="xs" color={mutedColor} noOfLines={open ? undefined : 1}>
             {notif.body}
           </Text>
-          <Text fontSize="10px" color={mutedColor} mt={1}>{notif.timestamp}</Text>
+          <Text fontSize="10px" color={mutedColor} mt={1}>{timeAgo}</Text>
         </Box>
 
-        {/* Actions */}
         <HStack spacing={1} flexShrink={0} onClick={(e) => e.stopPropagation()}>
-          {!notif.isRead && (
+          {!notif.is_read && (
             <Tooltip label="Mark as read">
               <IconButton
                 aria-label="Mark as read"
@@ -170,22 +139,21 @@ const NotifCard = ({
               onClick={() => onDelete(notif.id)}
             />
           </Tooltip>
-          <Icon
-            as={open ? FiChevronUp : FiChevronDown}
-            boxSize={4}
-            color={mutedColor}
-            cursor="pointer"
-          />
+          <Icon as={open ? FiChevronUp : FiChevronDown} boxSize={4} color={mutedColor} cursor="pointer" />
         </HStack>
       </HStack>
 
-      {/* Expanded detail */}
       <Collapse in={open} animateOpacity>
         <Divider borderColor={borderColor} />
         <Box px={5} py={4}>
           <Text fontSize="sm" color={detailColor} lineHeight="1.7">
-            {notif.detail}
+            {notif.detail || notif.body}
           </Text>
+          {notif.event && (
+            <Text fontSize="xs" color={mutedColor} mt={2} fontWeight="600">
+              Event: {notif.event.title}
+            </Text>
+          )}
         </Box>
       </Collapse>
     </Box>
@@ -193,31 +161,52 @@ const NotifCard = ({
 };
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState<Notification[]>(SEED);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading]             = useState(true);
+  const [markingAll, setMarkingAll]       = useState(false);
 
-  const mutedColor = useColorModeValue("gray.500", "gray.400");
-  const emptyBg = useColorModeValue("gray.50", "gray.800");
+  const mutedColor  = useColorModeValue("gray.500", "gray.400");
+  const emptyBg     = useColorModeValue("gray.50",  "gray.800");
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const data = await apiService.getNotifications();
+      setNotifications(data.results);
+    } catch {
+      // silently fail — non-critical
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const markRead = (id: number) =>
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
-  const markAllRead = () =>
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  const deleteNotif = (id: number) =>
+  const markRead = async (id: number) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
+    try { await apiService.markNotificationRead(id); } catch {}
+  };
+
+  const markAllRead = async () => {
+    setMarkingAll(true);
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    try { await apiService.markAllNotificationsRead(); } catch {}
+    setMarkingAll(false);
+  };
+
+  const deleteNotif = async (id: number) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    try { await apiService.deleteNotification(id); } catch {}
+  };
 
   return (
     <Box>
       {/* Header */}
       <HStack justify="space-between" align="center" mb={5}>
         <HStack spacing={2}>
-          <Text fontWeight="800" fontSize="lg" letterSpacing="-0.02em">
-            Notifications
-          </Text>
+          <Text fontWeight="800" fontSize="lg" letterSpacing="-0.02em">Notifications</Text>
           {unreadCount > 0 && (
             <Badge colorScheme="purple" borderRadius="full" px={2} fontSize="xs">
               {unreadCount} new
@@ -232,13 +221,21 @@ const Notifications = () => {
             color={mutedColor}
             borderRadius="full"
             onClick={markAllRead}
+            isLoading={markingAll}
           >
             Mark all read
           </Button>
         )}
       </HStack>
 
-      {notifications.length === 0 ? (
+      {loading ? (
+        <Center py={16}>
+          <VStack spacing={3}>
+            <Spinner size="md" color="brand.500" thickness="3px" speed="0.7s" />
+            <Text fontSize="sm" color={mutedColor}>Loading notifications…</Text>
+          </VStack>
+        </Center>
+      ) : notifications.length === 0 ? (
         <Center
           flexDirection="column"
           gap={4}
@@ -249,8 +246,7 @@ const Notifications = () => {
           borderColor={borderColor}
         >
           <Box
-            w="56px" h="56px" borderRadius="full"
-            bg="brand.50"
+            w="56px" h="56px" borderRadius="full" bg="brand.50"
             display="flex" alignItems="center" justifyContent="center"
           >
             <Icon as={FiBell} boxSize={6} color="brand.500" />
@@ -265,12 +261,7 @@ const Notifications = () => {
       ) : (
         <VStack spacing={3} align="stretch">
           {notifications.map((n) => (
-            <NotifCard
-              key={n.id}
-              notif={n}
-              onMarkRead={markRead}
-              onDelete={deleteNotif}
-            />
+            <NotifCard key={n.id} notif={n} onMarkRead={markRead} onDelete={deleteNotif} />
           ))}
         </VStack>
       )}

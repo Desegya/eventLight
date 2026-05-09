@@ -1,3 +1,4 @@
+
 import {
   Box,
   Flex,
@@ -42,6 +43,9 @@ import {
   FiMoon,
   FiSun,
   FiLogIn,
+  FiCalendar,
+  FiMapPin,
+  FiArrowRight,
 } from "react-icons/fi";
 import { IoPersonOutline } from "react-icons/io5";
 import logo from "../assets/logo.svg";
@@ -479,25 +483,67 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
                   </Box>
                 </>
               ) : (
-                <VStack spacing={2}>
-                  <Button
-                    variant="brand"
-                    w="full"
-                    borderRadius="xl"
-                    onClick={() => { navigate("/auth/register"); onClose(); }}
+                <VStack spacing={4} align="stretch">
+                  {/* Value pitch */}
+                  <Box
+                    bgGradient="linear(135deg, #1E1B4B 0%, #4C1D95 100%)"
+                    borderRadius="2xl"
+                    p={5}
                   >
-                    Sign up free
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    w="full"
-                    borderRadius="xl"
-                    leftIcon={<FiLogIn />}
-                    onClick={() => { navigate("/auth/login"); onClose(); }}
-                    color={mutedColor}
-                  >
-                    Log in
-                  </Button>
+                    <Text fontWeight="800" fontSize="lg" color="white" letterSpacing="-0.03em" lineHeight="1.2" mb={1}>
+                      Discover events<br />near you
+                    </Text>
+                    <Text fontSize="xs" color="whiteAlpha.700" mb={4} lineHeight="1.5">
+                      Concerts, conferences, worship nights, workshops — all in one place.
+                    </Text>
+                    <VStack spacing={2} align="stretch" mb={4}>
+                      {[
+                        { icon: FiHeart, text: "Like and save events you love" },
+                        { icon: FiCalendar, text: "Get reminders before they start" },
+                        { icon: FiMapPin, text: "Find events happening near you" },
+                      ].map(({ icon, text }) => (
+                        <HStack key={text} spacing={2.5}>
+                          <Box
+                            w="22px" h="22px" borderRadius="md"
+                            bg="whiteAlpha.200"
+                            display="flex" alignItems="center" justifyContent="center"
+                            flexShrink={0}
+                          >
+                            <Icon as={icon} boxSize={3} color="whiteAlpha.900" />
+                          </Box>
+                          <Text fontSize="xs" color="whiteAlpha.800" fontWeight="500">{text}</Text>
+                        </HStack>
+                      ))}
+                    </VStack>
+                    <Button
+                      w="full"
+                      bg="white"
+                      color="brand.700"
+                      borderRadius="xl"
+                      fontWeight="700"
+                      size="sm"
+                      rightIcon={<FiArrowRight size={13} />}
+                      _hover={{ bg: "whiteAlpha.900" }}
+                      onClick={() => { navigate("/auth/register"); onClose(); }}
+                    >
+                      Sign up free
+                    </Button>
+                  </Box>
+
+                  {/* Log in link */}
+                  <HStack justify="center" spacing={1.5}>
+                    <Text fontSize="sm" color={mutedColor}>Already have an account?</Text>
+                    <Box
+                      as="button"
+                      fontSize="sm"
+                      fontWeight="700"
+                      color="brand.500"
+                      onClick={() => { navigate("/auth/login"); onClose(); }}
+                      _hover={{ color: "brand.600" }}
+                    >
+                      Log in
+                    </Box>
+                  </HStack>
                 </VStack>
               )}
 

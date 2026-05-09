@@ -68,7 +68,7 @@ const NavBar = ({ onSearch }: Props) => {
     "rgba(15,23,42,0.88)"
   );
   const borderColor = useColorModeValue("gray.200", "gray.800");
-  const logoFilter = isDark ? "brightness(0) invert(1)" : "none";
+  const wordmarkColor = useColorModeValue("gray.900", "white");
   const inputBg = useColorModeValue("gray.100", "gray.800");
   const inputHoverBg = useColorModeValue("gray.200", "gray.700");
   const mutedColor = useColorModeValue("gray.600", "gray.400");
@@ -111,15 +111,27 @@ const NavBar = ({ onSearch }: Props) => {
       >
         {/* Logo */}
         <Link to="/">
-          <Image
-            src={logo}
-            h={{ base: "28px", md: "32px" }}
-            alt="EventLight"
-            filter={logoFilter}
-            flexShrink={0}
-            transition="opacity 0.2s"
-            _hover={{ opacity: 0.8 }}
-          />
+          <HStack spacing={2.5} align="center" flexShrink={0}>
+            <Image
+              src={logo}
+              h={{ base: "28px", md: "30px" }}
+              w={{ base: "28px", md: "30px" }}
+              alt="EventLight icon"
+              transition="opacity 0.2s"
+              _hover={{ opacity: 0.85 }}
+            />
+            <Text
+              fontWeight="800"
+              fontSize={{ base: "lg", md: "xl" }}
+              letterSpacing="-0.04em"
+              lineHeight="1"
+              color={wordmarkColor}
+              display={{ base: "none", sm: "block" }}
+            >
+              event
+              <Box as="span" color="brand.600">light</Box>
+            </Text>
+          </HStack>
         </Link>
 
         {/* Search — desktop */}
@@ -350,7 +362,12 @@ const NavBar = ({ onSearch }: Props) => {
             pb={4}
             pt={5}
           >
-            <Image src={logo} h="26px" filter={logoFilter} />
+            <HStack spacing={2} align="center">
+              <Image src={logo} h="24px" w="24px" alt="EventLight icon" />
+              <Text fontWeight="800" fontSize="lg" letterSpacing="-0.04em" color={wordmarkColor}>
+                event<Box as="span" color="brand.600">light</Box>
+              </Text>
+            </HStack>
           </DrawerHeader>
 
           <DrawerBody py={5} px={4}>

@@ -1,20 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="500" height="200" viewBox="0 0 500 200">
-  <style>
-    .logo-text {
-      transition: fill 0.3s ease;
-    }
-    /* Default light mode color */
-    .logo-text {
-      fill: #333;
-    }
-    /* Dark mode color */
-    @media (prefers-color-scheme: dark) {
-      .logo-text {
-        fill: #fff;
-      }
-    }
-  </style>
-  <text x="50%" y="50%" font-family="'Helvetica Neue', sans-serif" font-weight="bold" font-size="70" class="logo-text" text-anchor="middle" alignment-baseline="middle">
-    eventLight
-  </text>
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Badge gradient: vivid purple → deep indigo -->
+    <linearGradient id="badge-bg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9333EA"/>
+      <stop offset="1" stop-color="#4C1D95"/>
+    </linearGradient>
+
+    <!-- Radial inner glow for badge depth -->
+    <radialGradient id="badge-glow" cx="40%" cy="30%" r="65%" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="white" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Star gradient: pure white → soft lavender -->
+    <linearGradient id="star-fill" x1="8" y1="8" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset="1" stop-color="#EDE9FE" stop-opacity="0.88"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square badge -->
+  <rect width="40" height="40" rx="11" fill="url(#badge-bg)"/>
+
+  <!-- Inner glow overlay -->
+  <rect width="40" height="40" rx="11" fill="url(#badge-glow)"/>
+
+  <!--
+    Primary sparkle: a 4-pointed star with concave curved sides.
+    Each side is a quadratic bezier curving toward center (20,20).
+    Tips sit at the cardinal compass points, radius 12.
+    The concave curve creates the "sharp light burst" effect —
+    like a star seen through a camera lens, or a spotlight in a dark room.
+  -->
+  <path
+    d="M20 8 Q23 17 32 20 Q23 23 20 32 Q17 23 8 20 Q17 17 20 8Z"
+    fill="url(#star-fill)"
+  />
+
+  <!--
+    Secondary micro-sparkle (same shape, ~45% scale) centered at (20,20).
+    Outer tips at radius ~5.4: top=(20,14.6), right=(25.4,20), etc.
+    Creates a "star of stars" double-burst depth effect.
+  -->
+  <path
+    d="M20 14.6 Q21.35 18.65 25.4 20 Q21.35 21.35 20 25.4 Q18.65 21.35 14.6 20 Q18.65 18.65 20 14.6Z"
+    fill="white"
+    opacity="0.5"
+  />
+
+  <!--
+    Constellation accent dots — like stars in the night sky.
+    Two brighter, two dimmer; asymmetric placement for visual interest.
+  -->
+  <circle cx="31.5" cy="9.5"  r="2.2" fill="white" opacity="0.42"/>
+  <circle cx="9.5"  cy="30.5" r="2.2" fill="white" opacity="0.42"/>
+  <circle cx="9"    cy="9.5"  r="1.3" fill="white" opacity="0.2"/>
+  <circle cx="31.5" cy="31"   r="1.3" fill="white" opacity="0.2"/>
 </svg>

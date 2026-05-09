@@ -64,25 +64,23 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
 
   const isAuthenticated = !!user;
 
-  // When transparent (over hero), everything uses light-on-dark styling.
-  // When opaque, use the normal frosted-glass appearance.
-  const navBg = transparent
-    ? "transparent"
-    : useColorModeValue("rgba(255,255,255,0.88)", "rgba(15,23,42,0.88)");
-  const borderColor = transparent
-    ? "transparent"
-    : useColorModeValue("gray.200", "gray.800");
-  const wordmarkColor = transparent ? "white" : useColorModeValue("gray.900", "white");
-  const inputBg = transparent
-    ? "rgba(255,255,255,0.12)"
-    : useColorModeValue("gray.100", "gray.800");
-  const inputHoverBg = transparent
-    ? "rgba(255,255,255,0.18)"
-    : useColorModeValue("gray.200", "gray.700");
-  const mutedColor = transparent ? "rgba(255,255,255,0.65)" : useColorModeValue("gray.600", "gray.400");
+  // All hooks called unconditionally — transparent toggles which value is used, not which hook runs
+  const navBgOpaque = useColorModeValue("rgba(255,255,255,0.88)", "rgba(15,23,42,0.88)");
+  const borderColorOpaque = useColorModeValue("gray.200", "gray.800");
+  const wordmarkColorOpaque = useColorModeValue("gray.900", "white");
+  const inputBgOpaque = useColorModeValue("gray.100", "gray.800");
+  const inputHoverBgOpaque = useColorModeValue("gray.200", "gray.700");
+  const mutedColorOpaque = useColorModeValue("gray.600", "gray.400");
   const menuBg = useColorModeValue("white", "gray.800");
   const menuBorder = useColorModeValue("gray.200", "gray.700");
   const menuHoverBg = useColorModeValue("gray.50", "gray.700");
+
+  const navBg = transparent ? "transparent" : navBgOpaque;
+  const borderColor = transparent ? "transparent" : borderColorOpaque;
+  const wordmarkColor = transparent ? "white" : wordmarkColorOpaque;
+  const inputBg = transparent ? "rgba(255,255,255,0.12)" : inputBgOpaque;
+  const inputHoverBg = transparent ? "rgba(255,255,255,0.18)" : inputHoverBgOpaque;
+  const mutedColor = transparent ? "rgba(255,255,255,0.65)" : mutedColorOpaque;
 
   const handleLogout = async () => {
     try {

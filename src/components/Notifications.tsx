@@ -2,227 +2,278 @@ import {
   Box,
   Text,
   HStack,
-  Button,
   VStack,
+  Button,
+  Icon,
   IconButton,
   Tooltip,
-  Image,
+  Badge,
+  Collapse,
+  Divider,
+  Center,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { FaCheck } from "react-icons/fa";
-import { FiBell, FiTrash, FiArrowLeft } from "react-icons/fi";
+import {
+  FiBell,
+  FiTrash2,
+  FiCheck,
+  FiCheckCircle,
+  FiCalendar,
+  FiHeart,
+  FiBookmark,
+  FiInfo,
+  FiChevronDown,
+  FiChevronUp,
+} from "react-icons/fi";
 
-type Notification = {
+type NotifType = "reminder" | "like" | "save" | "info" | "event";
+
+interface Notification {
   id: number;
-  icon: JSX.Element;
+  type: NotifType;
   title: string;
-  message: string;
+  body: string;
+  detail: string;
   timestamp: string;
   isRead: boolean;
-  details: string;
-  eventImageUrl?: string; // Optional event image
+}
+
+const TYPE_META: Record<NotifType, { icon: React.ElementType; color: string; bg: string }> = {
+  reminder: { icon: FiCalendar, color: "brand.500", bg: "brand.50" },
+  like:     { icon: FiHeart,    color: "red.400",   bg: "red.50"   },
+  save:     { icon: FiBookmark, color: "teal.500",  bg: "teal.50"  },
+  info:     { icon: FiInfo,     color: "blue.500",  bg: "blue.50"  },
+  event:    { icon: FiBell,     color: "orange.500", bg: "orange.50" },
 };
 
-const NotificationCard = ({
-  notification,
-  onMarkAsRead,
+const SEED: Notification[] = [
+  {
+    id: 1,
+    type: "reminder",
+    title: "Event starts tomorrow",
+    body: "Shiloh 2024 is tomorrow. Don't miss it!",
+    detail: "You saved this event earlier. It kicks off tomorrow at 9 AM at Faith Arena, Ota. Make sure you plan your travel.",
+    timestamp: "2 hours ago",
+    isRead: false,
+  },
+  {
+    id: 2,
+    type: "event",
+    title: "New event in your area",
+    body: "A worship night just dropped near you.",
+    detail: "Kingdom Worship Night has been added near Lagos. It matches your preferred categories. Check it out before spots fill up.",
+    timestamp: "5 hours ago",
+    isRead: false,
+  },
+  {
+    id: 3,
+    type: "info",
+    title: "Welcome to eventlight",
+    body: "Discover events that move you.",
+    detail: "Thanks for joining eventlight. Browse thousands of events near you — worship nights, conferences, fellowships, and more. Save, like, and share the ones you love.",
+    timestamp: "Yesterday",
+    isRead: true,
+  },
+];
+
+const NotifCard = ({
+  notif,
+  onMarkRead,
   onDelete,
-  onShowDetails,
-  isExpanded,
 }: {
-  notification: Notification;
-  onMarkAsRead: (id: number) => void;
+  notif: Notification;
+  onMarkRead: (id: number) => void;
   onDelete: (id: number) => void;
-  onShowDetails: (id: number) => void;
-  isExpanded: boolean;
 }) => {
-  const textColor = "white";
-  const buttonBgColor = useColorModeValue("blue.800", "blue.600");
+  const [open, setOpen] = useState(false);
+
+  const cardBg = useColorModeValue("white", "gray.800");
+  const unreadBg = useColorModeValue("brand.50", "gray.750");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const unreadBorder = useColorModeValue("brand.100", "brand.900");
+  const mutedColor = useColorModeValue("gray.500", "gray.400");
+  const headingColor = useColorModeValue("gray.800", "white");
+  const detailColor = useColorModeValue("gray.600", "gray.300");
+
+  const meta = TYPE_META[notif.type];
 
   return (
-    <HStack
-      p={4}
-      borderRadius="md"
-      spacing={4}
-      w="100%"
-      justify="space-between"
+    <Box
+      bg={notif.isRead ? cardBg : unreadBg}
+      border="1px solid"
+      borderColor={notif.isRead ? borderColor : unreadBorder}
+      borderRadius="2xl"
+      overflow="hidden"
+      transition="all 0.15s ease"
     >
-      {/* Only show the title and icon if not expanded */}
-      {!isExpanded && (
-        <HStack spacing={3}>
-          {notification.icon}
-          <Text
-            fontSize="md"
-            fontWeight={notification.isRead ? "normal" : "bold"}
-          >
-            {notification.title}
+      <HStack
+        px={5}
+        py={4}
+        spacing={4}
+        align="flex-start"
+        cursor="pointer"
+        onClick={() => { setOpen(!open); if (!notif.isRead) onMarkRead(notif.id); }}
+        _hover={{ bg: useColorModeValue("gray.50", "gray.750") }}
+      >
+        {/* Icon */}
+        <Box
+          w="38px" h="38px" borderRadius="xl"
+          bg={meta.bg}
+          display="flex" alignItems="center" justifyContent="center"
+          flexShrink={0}
+          mt={0.5}
+        >
+          <Icon as={meta.icon} boxSize={4} color={meta.color} />
+        </Box>
+
+        {/* Content */}
+        <Box flex={1} minW={0}>
+          <HStack spacing={2} mb={0.5}>
+            <Text fontWeight={notif.isRead ? "600" : "700"} fontSize="sm" color={headingColor} noOfLines={1}>
+              {notif.title}
+            </Text>
+            {!notif.isRead && (
+              <Box w="6px" h="6px" borderRadius="full" bg="brand.500" flexShrink={0} />
+            )}
+          </HStack>
+          <Text fontSize="xs" color={mutedColor} noOfLines={open ? undefined : 1}>
+            {notif.body}
           </Text>
-        </HStack>
-      )}
+          <Text fontSize="10px" color={mutedColor} mt={1}>{notif.timestamp}</Text>
+        </Box>
 
-      {!isExpanded && (
-        <Text fontSize="sm" color="gray.500">
-          {notification.timestamp}
-        </Text>
-      )}
-
-      {/* Show buttons for mark as read and delete only when not expanded */}
-      {!isExpanded && (
-        <HStack spacing={2}>
-          {!notification.isRead && (
-            <Tooltip label="Mark as Read" aria-label="Mark as Read Tooltip">
+        {/* Actions */}
+        <HStack spacing={1} flexShrink={0} onClick={(e) => e.stopPropagation()}>
+          {!notif.isRead && (
+            <Tooltip label="Mark as read">
               <IconButton
                 aria-label="Mark as read"
-                icon={<FaCheck />}
-                onClick={() => onMarkAsRead(notification.id)}
-                size="sm"
+                icon={<FiCheck size={13} />}
+                size="xs"
+                borderRadius="full"
                 variant="ghost"
+                color={mutedColor}
+                onClick={() => onMarkRead(notif.id)}
               />
             </Tooltip>
           )}
-          <Tooltip
-            label="Delete Notification"
-            aria-label="Delete Notification Tooltip"
-          >
+          <Tooltip label="Delete">
             <IconButton
-              aria-label="Delete"
-              icon={<FiTrash />}
-              onClick={() => onDelete(notification.id)}
-              size="sm"
+              aria-label="Delete notification"
+              icon={<FiTrash2 size={13} />}
+              size="xs"
+              borderRadius="full"
               variant="ghost"
-              color="red.500"
+              color="red.400"
+              _hover={{ bg: "red.50", color: "red.500" }}
+              onClick={() => onDelete(notif.id)}
             />
           </Tooltip>
-          {/* See Details button */}
-          <Button
-            display={{ base: "none", md: "block" }}
-            size="sm"
-            variant="link"
-            onClick={() => onShowDetails(notification.id)}
-          >
-            {isExpanded ? "Hide Details" : "See Details"}
-          </Button>
+          <Icon
+            as={open ? FiChevronUp : FiChevronDown}
+            boxSize={4}
+            color={mutedColor}
+            cursor="pointer"
+          />
         </HStack>
-      )}
+      </HStack>
 
-      {/* Expanded notification view */}
-      {isExpanded && (
-        <Box mt={2} borderRadius="md" w="100%">
-          {/* Back Arrow Icon */}
-          <HStack mb={3}>
-            <IconButton
-              display={{ base: "none", md: "block" }}
-              aria-label="Back"
-              icon={<FiArrowLeft />}
-              onClick={() => onShowDetails(notification.id)} // Collapse the notification
-              size="lg"
-              variant="ghost"
-            />
-            <Text fontSize="xl" fontWeight="bold">
-              {notification.title}
-            </Text>
-            <Text fontSize="sm" color="gray.500">
-              {notification.timestamp}
-            </Text>
-          </HStack>
-
-          {/* Notification details */}
-          <Text fontSize="md" mb={3}>
-            {notification.details}
+      {/* Expanded detail */}
+      <Collapse in={open} animateOpacity>
+        <Divider borderColor={borderColor} />
+        <Box px={5} py={4}>
+          <Text fontSize="sm" color={detailColor} lineHeight="1.7">
+            {notif.detail}
           </Text>
-
-          {/* Event image and button (only show if the image is provided) */}
-          {notification.eventImageUrl && (
-            <Image
-              src={notification.eventImageUrl}
-              alt="Event Image"
-              mt={3}
-              mb={4}
-              boxSize="100%"
-              objectFit="cover"
-            />
-          )}
-
-          <Button
-            bg={buttonBgColor}
-            color={textColor}
-            variant="outline"
-            onClick={() => console.log("View event details clicked")}
-          >
-            View Event Details
-          </Button>
         </Box>
-      )}
-    </HStack>
+      </Collapse>
+    </Box>
   );
 };
 
 const Notifications = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: 1,
-      icon: <FiBell />,
-      title: "Shiloh 2024 Reminder",
-      message:
-        "The event you liked, Shiloh 2024 starts in a week. Will you be attending?",
-      timestamp: "2 hours ago",
-      isRead: false,
-      details:
-        "Shiloh 2024 starts in a week. Make sure you're ready to attend the event of the year. Don't miss out!",
-      eventImageUrl: "http://dummyimage.com/200x100.png/dddddd/000000", // Example event image
-    },
-    // Add more notifications if necessary
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>(SEED);
 
-  const [expandedNotificationId, setExpandedNotificationId] = useState<
-    number | null
-  >(null);
+  const mutedColor = useColorModeValue("gray.500", "gray.400");
+  const emptyBg = useColorModeValue("gray.50", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
 
-  const markAsRead = (id: number) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((notif) =>
-        notif.id === id ? { ...notif, isRead: true } : notif
-      )
-    );
-  };
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  const deleteNotification = (id: number) => {
-    setNotifications((prevNotifications) =>
-      prevNotifications.filter((notif) => notif.id !== id)
-    );
-  };
+  const markRead = (id: number) =>
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
 
-  const showDetails = (id: number) => {
-    setExpandedNotificationId((prev) => (prev === id ? null : id));
-  };
+  const markAllRead = () =>
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+
+  const deleteNotif = (id: number) =>
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
 
   return (
-    <Box p={4}>
-      <Text
-        fontSize="xl"
-        textAlign={{ base: "center", md: "left" }}
-        fontWeight="bold"
-        mb={4}
-      >
-        Notifications
-      </Text>
-      <VStack spacing={4}>
-        {notifications.length === 0 ? (
-          <Text>No notifications</Text>
-        ) : (
-          notifications.map((notif) => (
-            <NotificationCard
-              key={notif.id}
-              notification={notif}
-              onMarkAsRead={markAsRead}
-              onDelete={deleteNotification}
-              onShowDetails={showDetails}
-              isExpanded={expandedNotificationId === notif.id}
-            />
-          ))
+    <Box>
+      {/* Header */}
+      <HStack justify="space-between" align="center" mb={5}>
+        <HStack spacing={2}>
+          <Text fontWeight="800" fontSize="lg" letterSpacing="-0.02em">
+            Notifications
+          </Text>
+          {unreadCount > 0 && (
+            <Badge colorScheme="purple" borderRadius="full" px={2} fontSize="xs">
+              {unreadCount} new
+            </Badge>
+          )}
+        </HStack>
+        {unreadCount > 0 && (
+          <Button
+            size="xs"
+            variant="ghost"
+            leftIcon={<FiCheckCircle size={13} />}
+            color={mutedColor}
+            borderRadius="full"
+            onClick={markAllRead}
+          >
+            Mark all read
+          </Button>
         )}
-      </VStack>
+      </HStack>
+
+      {notifications.length === 0 ? (
+        <Center
+          flexDirection="column"
+          gap={4}
+          py={16}
+          borderRadius="2xl"
+          bg={emptyBg}
+          border="1.5px dashed"
+          borderColor={borderColor}
+        >
+          <Box
+            w="56px" h="56px" borderRadius="full"
+            bg="brand.50"
+            display="flex" alignItems="center" justifyContent="center"
+          >
+            <Icon as={FiBell} boxSize={6} color="brand.500" />
+          </Box>
+          <VStack spacing={1}>
+            <Text fontWeight="700" fontSize="lg" letterSpacing="-0.02em">All caught up</Text>
+            <Text fontSize="sm" color={mutedColor} textAlign="center" maxW="260px">
+              No notifications right now. We'll let you know when something's new.
+            </Text>
+          </VStack>
+        </Center>
+      ) : (
+        <VStack spacing={3} align="stretch">
+          {notifications.map((n) => (
+            <NotifCard
+              key={n.id}
+              notif={n}
+              onMarkRead={markRead}
+              onDelete={deleteNotif}
+            />
+          ))}
+        </VStack>
+      )}
     </Box>
   );
 };

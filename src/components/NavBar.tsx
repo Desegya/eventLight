@@ -51,9 +51,10 @@ import { useRef } from "react";
 
 interface Props {
   onSearch: (searchText: string) => void;
+  transparent?: boolean;
 }
 
-const NavBar = ({ onSearch }: Props) => {
+const NavBar = ({ onSearch, transparent = false }: Props) => {
   const { user, logout } = useAuth();
   const { colorMode, toggleColorMode } = useColorMode();
   const isDark = colorMode === "dark";
@@ -63,15 +64,22 @@ const NavBar = ({ onSearch }: Props) => {
 
   const isAuthenticated = !!user;
 
-  const navBg = useColorModeValue(
-    "rgba(255,255,255,0.88)",
-    "rgba(15,23,42,0.88)"
-  );
-  const borderColor = useColorModeValue("gray.200", "gray.800");
-  const wordmarkColor = useColorModeValue("gray.900", "white");
-  const inputBg = useColorModeValue("gray.100", "gray.800");
-  const inputHoverBg = useColorModeValue("gray.200", "gray.700");
-  const mutedColor = useColorModeValue("gray.600", "gray.400");
+  // When transparent (over hero), everything uses light-on-dark styling.
+  // When opaque, use the normal frosted-glass appearance.
+  const navBg = transparent
+    ? "transparent"
+    : useColorModeValue("rgba(255,255,255,0.88)", "rgba(15,23,42,0.88)");
+  const borderColor = transparent
+    ? "transparent"
+    : useColorModeValue("gray.200", "gray.800");
+  const wordmarkColor = transparent ? "white" : useColorModeValue("gray.900", "white");
+  const inputBg = transparent
+    ? "rgba(255,255,255,0.12)"
+    : useColorModeValue("gray.100", "gray.800");
+  const inputHoverBg = transparent
+    ? "rgba(255,255,255,0.18)"
+    : useColorModeValue("gray.200", "gray.700");
+  const mutedColor = transparent ? "rgba(255,255,255,0.65)" : useColorModeValue("gray.600", "gray.400");
   const menuBg = useColorModeValue("white", "gray.800");
   const menuBorder = useColorModeValue("gray.200", "gray.700");
   const menuHoverBg = useColorModeValue("gray.50", "gray.700");
@@ -96,10 +104,11 @@ const NavBar = ({ onSearch }: Props) => {
       top={0}
       zIndex={100}
       bg={navBg}
-      backdropFilter="blur(20px)"
-      WebkitBackdropFilter="blur(20px)"
+      backdropFilter={transparent ? "none" : "blur(20px)"}
+      sx={{ WebkitBackdropFilter: transparent ? "none" : "blur(20px)" }}
       borderBottom="1px solid"
       borderColor={borderColor}
+      transition="background 0.35s ease, border-color 0.35s ease, backdrop-filter 0.35s ease"
     >
       <Flex
         maxW="container.2xl"
@@ -307,8 +316,11 @@ const NavBar = ({ onSearch }: Props) => {
                 size="sm"
                 borderRadius="full"
                 onClick={() => navigate("/auth/login")}
-                color={mutedColor}
-                _hover={{ bg: isDark ? "gray.800" : "gray.100", color: isDark ? "white" : "gray.900" }}
+                color={transparent ? "rgba(255,255,255,0.8)" : mutedColor}
+                _hover={{
+                  bg: transparent ? "rgba(255,255,255,0.12)" : isDark ? "gray.800" : "gray.100",
+                  color: "white",
+                }}
                 leftIcon={<FiLogIn size={14} />}
               >
                 Log in

@@ -1,13 +1,15 @@
 import {
+  Box,
+  Flex,
   HStack,
   Image,
   Button,
-  Box,
-  Flex,
   IconButton,
-  VStack,
+  Input,
+  InputGroup,
+  InputLeftElement,
   useColorMode,
-  Icon,
+  useColorModeValue,
   useDisclosure,
   Drawer,
   DrawerBody,
@@ -20,24 +22,32 @@ import {
   MenuList,
   MenuItem,
   MenuDivider,
+  Avatar,
+  Text,
+  VStack,
+  Divider,
+  Icon,
+  Badge,
 } from "@chakra-ui/react";
 import {
   FiPlus,
-  FiLogIn,
   FiHeart,
   FiBookmark,
   FiSettings,
   FiLogOut,
   FiBell,
   FiClipboard,
+  FiSearch,
+  FiMenu,
+  FiMoon,
+  FiSun,
+  FiLogIn,
 } from "react-icons/fi";
-import { RxHamburgerMenu } from "react-icons/rx";
-import { IoCloseSharp, IoPersonOutline } from "react-icons/io5";
+import { IoPersonOutline } from "react-icons/io5";
 import logo from "../assets/logo.svg";
-import SearchInput from "./SearchInput";
-import ColorModeSwitch from "./ColorModeSwitch";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useRef } from "react";
 
 interface Props {
   onSearch: (searchText: string) => void;
@@ -45,16 +55,26 @@ interface Props {
 
 const NavBar = ({ onSearch }: Props) => {
   const { user, logout } = useAuth();
-  const { colorMode } = useColorMode();
+  const { colorMode, toggleColorMode } = useColorMode();
   const isDark = colorMode === "dark";
   const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const isAuthenticated = !!user;
 
-  const handleLogin = () => {
-    navigate("/auth/login");
-  };
+  const navBg = useColorModeValue(
+    "rgba(255,255,255,0.88)",
+    "rgba(15,23,42,0.88)"
+  );
+  const borderColor = useColorModeValue("gray.200", "gray.800");
+  const logoFilter = isDark ? "brightness(0) invert(1)" : "none";
+  const inputBg = useColorModeValue("gray.100", "gray.800");
+  const inputHoverBg = useColorModeValue("gray.200", "gray.700");
+  const mutedColor = useColorModeValue("gray.600", "gray.400");
+  const menuBg = useColorModeValue("white", "gray.800");
+  const menuBorder = useColorModeValue("gray.200", "gray.700");
+  const menuHoverBg = useColorModeValue("gray.50", "gray.700");
 
   const handleLogout = async () => {
     try {
@@ -65,329 +85,419 @@ const NavBar = ({ onSearch }: Props) => {
     }
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchRef.current) onSearch(searchRef.current.value);
+  };
+
   return (
     <Box
-      bg={isDark ? "gray.800" : "white"}
-      color={isDark ? "white" : "blue.800"}
-      px={4}
-      py={2}
+      position="sticky"
+      top={0}
+      zIndex={100}
+      bg={navBg}
+      backdropFilter="blur(20px)"
+      WebkitBackdropFilter="blur(20px)"
+      borderBottom="1px solid"
+      borderColor={borderColor}
     >
-      <Flex align="center" justify="space-between" wrap="wrap">
-        <Image src={logo} boxSize="80px" alt="EventLight Logo" />
+      <Flex
+        maxW="container.2xl"
+        mx="auto"
+        px={{ base: 4, md: 6, lg: 8 }}
+        py={3}
+        align="center"
+        gap={{ base: 3, md: 4 }}
+      >
+        {/* Logo */}
+        <Link to="/">
+          <Image
+            src={logo}
+            h={{ base: "28px", md: "32px" }}
+            alt="EventLight"
+            filter={logoFilter}
+            flexShrink={0}
+            transition="opacity 0.2s"
+            _hover={{ opacity: 0.8 }}
+          />
+        </Link>
 
-        <Box flex="1" mx={4}>
-          <SearchInput onSearch={onSearch} />
+        {/* Search — desktop */}
+        <Box flex={1} maxW="440px" display={{ base: "none", md: "block" }}>
+          <form onSubmit={handleSearchSubmit}>
+            <InputGroup size="sm">
+              <InputLeftElement pointerEvents="none" pl={1}>
+                <Icon as={FiSearch} color="gray.400" boxSize={4} />
+              </InputLeftElement>
+              <Input
+                ref={searchRef}
+                variant="filled"
+                borderRadius="full"
+                placeholder="Search events, places..."
+                fontSize="sm"
+                bg={inputBg}
+                border="1.5px solid transparent"
+                _hover={{ bg: inputHoverBg }}
+                _focus={{
+                  bg: isDark ? "gray.800" : "white",
+                  borderColor: "brand.500",
+                  boxShadow: "0 0 0 3px rgba(139,92,246,0.15)",
+                }}
+                h="36px"
+              />
+            </InputGroup>
+          </form>
         </Box>
 
-        {/* Hamburger menu for tablet and mobile */}
-        <IconButton
-          display={{
-            base: "block",
-            md: isAuthenticated ? "block" : "none",
-            lg: "none",
-          }}
-          icon={isOpen ? <IoCloseSharp /> : <RxHamburgerMenu />}
-          aria-label="Toggle Menu"
-          variant="ghost"
-          onClick={isOpen ? onClose : onOpen}
-        />
+        {/* Right Actions — desktop */}
+        <HStack spacing={1.5} ml="auto" display={{ base: "none", md: "flex" }}>
+          {/* Theme toggle */}
+          <IconButton
+            aria-label="Toggle theme"
+            icon={isDark ? <FiSun size={16} /> : <FiMoon size={16} />}
+            variant="ghost"
+            borderRadius="full"
+            size="sm"
+            onClick={toggleColorMode}
+            color={mutedColor}
+            _hover={{ bg: isDark ? "gray.800" : "gray.100", color: isDark ? "white" : "gray.900" }}
+          />
 
-        <HStack spacing={4} display={{ base: "none", md: "flex", lg: "flex" }}>
-          {isAuthenticated && (
+          {isAuthenticated ? (
             <>
-              <Link to={`/events/add-event`}>
+              <Link to="/events/add-event">
                 <Button
-                  display={{ base: "none", lg: "inline-flex" }}
-                  bg={isDark ? "blue.600" : "blue.800"}
-                  color="white"
-                  leftIcon={<Icon as={FiPlus} />}
+                  variant="brand"
+                  size="sm"
+                  leftIcon={<FiPlus size={14} />}
                   borderRadius="full"
-                  _hover={{ bg: isDark ? "blue.500" : "blue.600" }}
+                  px={4}
                 >
-                  Add Events
+                  Create Event
                 </Button>
               </Link>
 
+              {/* Notifications */}
               <Menu>
                 <MenuButton
-                  display={{ base: "none", lg: "inline-flex" }}
                   as={IconButton}
-                  border="1px solid"
-                  borderRadius="full"
                   aria-label="Notifications"
-                  icon={<FiBell />}
+                  icon={
+                    <Box position="relative" display="inline-flex">
+                      <FiBell size={16} />
+                      <Box
+                        position="absolute"
+                        top="-4px"
+                        right="-4px"
+                        w="8px"
+                        h="8px"
+                        borderRadius="full"
+                        bg="brand.500"
+                        border="1.5px solid"
+                        borderColor={isDark ? "gray.900" : "white"}
+                      />
+                    </Box>
+                  }
                   variant="ghost"
-                  color={isDark ? "blue.300" : "blue.800"}
-                  _hover={{
-                    bg: isDark ? "blue.600" : "blue.100",
-                    color: isDark ? "blue.500" : "blue.600",
-                  }}
+                  borderRadius="full"
+                  size="sm"
+                  color={mutedColor}
+                  _hover={{ bg: isDark ? "gray.800" : "gray.100" }}
                 />
-                <MenuList>
-                  <MenuItem>
-                    <Box>
-                      <strong>Event Reminder</strong>
-                      <p>Your event is starting soon!</p>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem>
-                    <Box>
-                      <strong>New Event Added</strong>
-                      <p>A new event has been added to your favorite list.</p>
-                    </Box>
-                  </MenuItem>
-                  <MenuItem>
-                    <Box>
-                      <strong>Update Available</strong>
-                      <p>Your app has a new update available.</p>
-                    </Box>
-                  </MenuItem>
+                <MenuList
+                  bg={menuBg}
+                  borderColor={menuBorder}
+                  boxShadow="0 20px 60px rgba(0,0,0,0.15)"
+                  borderRadius="2xl"
+                  p={2}
+                  minW="300px"
+                >
+                  <Text
+                    px={3}
+                    py={1}
+                    fontWeight="700"
+                    fontSize="sm"
+                    color={mutedColor}
+                    mb={1}
+                  >
+                    Notifications
+                  </Text>
+                  {[
+                    { title: "Event Reminder", body: "Your event starts in 2 hours!" },
+                    { title: "New Event Near You", body: "A new event was added to your area." },
+                    { title: "Update Available", body: "Check out new features in EventLight." },
+                  ].map(({ title, body }) => (
+                    <MenuItem
+                      key={title}
+                      borderRadius="xl"
+                      py={3}
+                      _hover={{ bg: menuHoverBg }}
+                    >
+                      <Box>
+                        <Text fontWeight="600" fontSize="sm">{title}</Text>
+                        <Text fontSize="xs" color={mutedColor}>{body}</Text>
+                      </Box>
+                    </MenuItem>
+                  ))}
                 </MenuList>
               </Menu>
-            </>
-          )}
 
-          {!isAuthenticated ? (
-            <Button
-              variant="ghost"
-              color={isDark ? "blue.300" : "blue.800"}
-              _hover={{
-                bg: isDark ? "blue.700" : "blue.50",
-                color: isDark ? "blue.500" : "blue.600",
-              }}
-              onClick={handleLogin}
-              leftIcon={<Icon as={FiLogIn} />}
-            >
-              Sign Up / Login
-            </Button>
-          ) : (
-            <>
+              {/* Account */}
               <Menu>
-                <MenuButton
-                  display={{ base: "none", lg: "flex" }}
-                  aria-label="Account"
-                  alignItems="center"
-                  justifyContent="center"
-                  w="40px"
-                  h="40px"
-                  border="1px solid"
-                  borderColor={isDark ? "blue.500" : "blue.800"}
-                  borderRadius="full"
-                  color={isDark ? "blue.300" : "blue.800"}
-                  _hover={{
-                    bg: isDark ? "blue.600" : "blue.100",
-                    color: isDark ? "blue.500" : "blue.600",
-                  }}
-                >
-                  <Icon as={IoPersonOutline} />
+                <MenuButton>
+                  <Avatar
+                    size="sm"
+                    name={user?.email || "User"}
+                    bg="brand.600"
+                    color="white"
+                    cursor="pointer"
+                    boxSize="34px"
+                    fontSize="xs"
+                    fontWeight="700"
+                    _hover={{ ring: "2px", ringColor: "brand.400", ringOffset: "2px" }}
+                  />
                 </MenuButton>
-                <MenuList>
+                <MenuList
+                  bg={menuBg}
+                  borderColor={menuBorder}
+                  boxShadow="0 20px 60px rgba(0,0,0,0.15)"
+                  borderRadius="2xl"
+                  p={2}
+                  minW="210px"
+                >
+                  <Box px={3} py={2} mb={1}>
+                    <Text fontWeight="700" fontSize="sm" noOfLines={1}>{user?.email}</Text>
+                    <Text fontSize="xs" color={mutedColor}>Member</Text>
+                  </Box>
+                  <MenuDivider borderColor={menuBorder} />
+                  <MenuItem borderRadius="xl" icon={<IoPersonOutline />} onClick={() => navigate("/dashboard/account")} _hover={{ bg: menuHoverBg }}>My Account</MenuItem>
+                  <MenuItem borderRadius="xl" icon={<FiHeart size={14} />} onClick={() => navigate("/dashboard/liked-events")} _hover={{ bg: menuHoverBg }}>Liked Events</MenuItem>
+                  <MenuItem borderRadius="xl" icon={<FiBookmark size={14} />} onClick={() => navigate("/dashboard/saved-events")} _hover={{ bg: menuHoverBg }}>Saved Events</MenuItem>
+                  <MenuItem borderRadius="xl" icon={<FiClipboard size={14} />} onClick={() => navigate("/dashboard/my-events")} _hover={{ bg: menuHoverBg }}>My Events</MenuItem>
+                  <MenuDivider borderColor={menuBorder} />
+                  <MenuItem borderRadius="xl" icon={<FiSettings size={14} />} onClick={() => navigate("/dashboard/settings")} _hover={{ bg: menuHoverBg }}>Settings</MenuItem>
                   <MenuItem
-                    onClick={() => navigate("/dashboard/account")}
-                    icon={<Icon as={IoPersonOutline} />}
-                  >
-                    My Account
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => navigate("/dashboard/liked-events")}
-                    icon={<Icon as={FiHeart} />}
-                  >
-                    Liked Events
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => navigate("/dashboard/saved-events")}
-                    icon={<Icon as={FiBookmark} />}
-                  >
-                    Saved Events
-                  </MenuItem>
-                  <MenuItem
-                    onClick={() => navigate("/dashboard/my-events")}
-                    icon={<Icon as={FiClipboard} />}
-                  >
-                    My Events
-                  </MenuItem>
-                  <MenuDivider />
-                  <MenuItem
-                    onClick={() => navigate("/dashboard/settings")}
-                    icon={<Icon as={FiSettings} />}
-                  >
-                    Settings
-                  </MenuItem>
-                  <MenuItem
+                    borderRadius="xl"
+                    icon={<FiLogOut size={14} />}
                     onClick={handleLogout}
-                    icon={<Icon as={FiLogOut} />}
-                    color="red"
+                    color="red.400"
+                    _hover={{ bg: "red.50", color: "red.500" }}
                   >
                     Log Out
                   </MenuItem>
                 </MenuList>
               </Menu>
             </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                borderRadius="full"
+                onClick={() => navigate("/auth/login")}
+                color={mutedColor}
+                _hover={{ bg: isDark ? "gray.800" : "gray.100", color: isDark ? "white" : "gray.900" }}
+                leftIcon={<FiLogIn size={14} />}
+              >
+                Log in
+              </Button>
+              <Button
+                variant="brand"
+                size="sm"
+                borderRadius="full"
+                px={5}
+                onClick={() => navigate("/auth/register")}
+              >
+                Sign up free
+              </Button>
+            </>
           )}
+        </HStack>
 
-          {/* Color Mode Switch only for non-authenticated users */}
-          {!isAuthenticated && <ColorModeSwitch />}
+        {/* Mobile right */}
+        <HStack spacing={1} ml="auto" display={{ base: "flex", md: "none" }}>
+          <IconButton
+            aria-label="Search"
+            icon={<FiSearch size={18} />}
+            variant="ghost"
+            borderRadius="full"
+            size="sm"
+            color={mutedColor}
+          />
+          <IconButton
+            aria-label="Open menu"
+            icon={<FiMenu size={18} />}
+            variant="ghost"
+            borderRadius="full"
+            onClick={onOpen}
+            color={mutedColor}
+          />
         </HStack>
       </Flex>
 
-      {/* Drawer for mobile menu */}
-      <Drawer isOpen={isOpen} placement="right" onClose={onClose}>
-        <DrawerOverlay>
-          <DrawerContent bg={isDark ? "gray.800" : "white"}>
-            <DrawerCloseButton color={isDark ? "white" : "blue.800"} />
-            <DrawerHeader borderBottomWidth="1px">Menu</DrawerHeader>
+      {/* Mobile Drawer */}
+      <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="xs">
+        <DrawerOverlay backdropFilter="blur(6px)" bg="blackAlpha.300" />
+        <DrawerContent
+          bg={isDark ? "gray.900" : "white"}
+          borderLeft="1px solid"
+          borderColor={borderColor}
+        >
+          <DrawerCloseButton mt={3} color={mutedColor} />
+          <DrawerHeader
+            borderBottomWidth="1px"
+            borderColor={borderColor}
+            pb={4}
+            pt={5}
+          >
+            <Image src={logo} h="26px" filter={logoFilter} />
+          </DrawerHeader>
 
-            <DrawerBody>
-              <VStack as="nav" spacing={4} align="flex-start">
-                {/* Mobile Text Links */}
-                {!isAuthenticated ? (
-                  <>
-                    <Box
-                      as="a"
-                      href="#"
-                      color={isDark ? "blue.300" : "blue.800"}
-                      fontWeight="bold"
-                      _hover={{
-                        color: isDark ? "blue.500" : "blue.600",
-                      }}
-                      display="flex"
-                      alignItems="center"
-                      onClick={handleLogin}
-                    >
-                      <Icon as={FiLogIn} mr={2} />
-                      Sign Up / Login
-                    </Box>
-                    <ColorModeSwitch />
-                  </>
-                ) : (
-                  <>
-                    <Box
-                      as="a"
-                      href="#"
-                      color={isDark ? "blue.300" : "blue.800"}
-                      fontWeight="bold"
-                      _hover={{
-                        color: isDark ? "blue.500" : "blue.600",
-                      }}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      <Icon as={FiPlus} mr={2} />
-                      Add Events
-                    </Box>
-                    <Box
-                      as="a"
-                      href="#"
-                      onClick={() => navigate("/account")}
-                      color={isDark ? "blue.300" : "blue.800"}
-                      fontWeight="bold"
-                      _hover={{
-                        color: isDark ? "blue.500" : "blue.600",
-                      }}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      <Icon as={IoPersonOutline} mr={2} />
-                      My Account
-                    </Box>
-                    <Box
-                      as="a"
-                      href="#"
-                      onClick={() => navigate("/notifications")}
-                      color={isDark ? "blue.300" : "blue.800"}
-                      fontWeight="bold"
-                      _hover={{
-                        color: isDark ? "blue.500" : "blue.600",
-                      }}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      <Icon as={FiBell} mr={2} />
-                      Notifications
-                    </Box>
+          <DrawerBody py={5} px={4}>
+            <VStack spacing={1} align="stretch">
+              {/* Mobile search */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (searchRef.current) {
+                    onSearch(searchRef.current.value);
+                    onClose();
+                  }
+                }}
+              >
+                <InputGroup mb={4} size="sm">
+                  <InputLeftElement pl={1}>
+                    <Icon as={FiSearch} color="gray.400" boxSize={4} />
+                  </InputLeftElement>
+                  <Input
+                    ref={searchRef}
+                    borderRadius="full"
+                    placeholder="Search events..."
+                    variant="filled"
+                    bg={inputBg}
+                  />
+                </InputGroup>
+              </form>
 
-                    <Box
-                      as="a"
-                      href="#"
-                      onClick={() => navigate("/saved-events")}
-                      color={isDark ? "blue.300" : "blue.800"}
-                      fontWeight="bold"
-                      _hover={{
-                        color: isDark ? "blue.500" : "blue.600",
-                      }}
-                      display="flex"
-                      alignItems="center"
-                    >
-                      <Icon as={FiBookmark} mr={2} />
-                      Saved Events
-                    </Box>
-                    <Box
-                      as="a"
-                      href="#"
-                      color={isDark ? "blue.300" : "blue.800"}
-                      fontWeight="bold"
-                      _hover={{
-                        color: isDark ? "blue.500" : "blue.600",
-                      }}
-                      display="flex"
-                      alignItems="center"
-                      onClick={() => navigate("/liked-events")}
-                    >
-                      <Icon as={FiHeart} mr={2} />
-                      Liked Events
-                    </Box>
-                    <Box
-                      as="a"
-                      href="#"
-                      color={isDark ? "blue.300" : "blue.800"}
-                      fontWeight="bold"
-                      _hover={{
-                        color: isDark ? "blue.500" : "blue.600",
-                      }}
-                      display="flex"
-                      alignItems="center"
-                      onClick={() => navigate("/my-events")}
-                    >
-                      <Icon as={FiClipboard} mr={2} />
-                      My Events
-                    </Box>
+              {isAuthenticated ? (
+                <>
+                  <Box
+                    px={3}
+                    py={3}
+                    borderRadius="xl"
+                    bg={isDark ? "gray.800" : "gray.50"}
+                    mb={2}
+                  >
+                    <Text fontWeight="700" fontSize="sm" noOfLines={1}>
+                      {user?.email}
+                    </Text>
+                    <Text fontSize="xs" color={mutedColor}>
+                      Member
+                    </Text>
+                  </Box>
 
+                  {[
+                    { icon: FiPlus, label: "Create Event", path: "/events/add-event" },
+                    { icon: IoPersonOutline, label: "My Account", path: "/dashboard/account" },
+                    { icon: FiBell, label: "Notifications", path: "/dashboard/notifications" },
+                    { icon: FiHeart, label: "Liked Events", path: "/dashboard/liked-events" },
+                    { icon: FiBookmark, label: "Saved Events", path: "/dashboard/saved-events" },
+                    { icon: FiClipboard, label: "My Events", path: "/dashboard/my-events" },
+                    { icon: FiSettings, label: "Settings", path: "/dashboard/settings" },
+                  ].map(({ icon, label, path }) => (
                     <Box
-                      as="a"
-                      href="#"
-                      onClick={() => navigate("/settings")}
-                      color={isDark ? "blue.300" : "blue.800"}
-                      fontWeight="bold"
-                      _hover={{
-                        color: isDark ? "blue.500" : "blue.600",
-                      }}
+                      key={label}
+                      as="button"
+                      onClick={() => { navigate(path); onClose(); }}
                       display="flex"
                       alignItems="center"
+                      gap={3}
+                      px={3}
+                      py={2.5}
+                      borderRadius="xl"
+                      w="100%"
+                      textAlign="left"
+                      color={isDark ? "gray.200" : "gray.700"}
+                      fontWeight="500"
+                      fontSize="sm"
+                      _hover={{ bg: isDark ? "gray.800" : "gray.50", color: "brand.600" }}
+                      transition="all 0.15s ease"
                     >
-                      <Icon as={FiSettings} mr={2} />
-                      Settings
+                      <Icon as={icon} boxSize={4} />
+                      {label}
                     </Box>
-                    <Box
-                      as="a"
-                      href="#"
-                      color="red"
-                      fontWeight="bold"
-                      _hover={{
-                        color: "red.500",
-                      }}
-                      display="flex"
-                      alignItems="center"
-                      onClick={handleLogout}
-                    >
-                      <Icon as={FiLogOut} mr={2} />
-                      Log Out
-                    </Box>
-                  </>
-                )}
-              </VStack>
-            </DrawerBody>
-          </DrawerContent>
-        </DrawerOverlay>
+                  ))}
+
+                  <Divider my={2} borderColor={borderColor} />
+
+                  <Box
+                    as="button"
+                    onClick={handleLogout}
+                    display="flex"
+                    alignItems="center"
+                    gap={3}
+                    px={3}
+                    py={2.5}
+                    borderRadius="xl"
+                    w="100%"
+                    textAlign="left"
+                    color="red.400"
+                    fontWeight="500"
+                    fontSize="sm"
+                    _hover={{ bg: "red.50", color: "red.500" }}
+                    transition="all 0.15s ease"
+                  >
+                    <Icon as={FiLogOut} boxSize={4} />
+                    Log Out
+                  </Box>
+                </>
+              ) : (
+                <VStack spacing={2}>
+                  <Button
+                    variant="brand"
+                    w="full"
+                    borderRadius="xl"
+                    onClick={() => { navigate("/auth/register"); onClose(); }}
+                  >
+                    Sign up free
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    w="full"
+                    borderRadius="xl"
+                    leftIcon={<FiLogIn />}
+                    onClick={() => { navigate("/auth/login"); onClose(); }}
+                    color={mutedColor}
+                  >
+                    Log in
+                  </Button>
+                </VStack>
+              )}
+
+              <Divider my={3} borderColor={borderColor} />
+
+              <Flex
+                align="center"
+                justify="space-between"
+                px={3}
+                py={2}
+              >
+                <Text fontSize="sm" fontWeight="500" color={mutedColor}>
+                  {isDark ? "Dark mode" : "Light mode"}
+                </Text>
+                <IconButton
+                  aria-label="Toggle theme"
+                  icon={isDark ? <FiSun size={15} /> : <FiMoon size={15} />}
+                  size="sm"
+                  variant="ghost"
+                  borderRadius="full"
+                  onClick={toggleColorMode}
+                  color={mutedColor}
+                />
+              </Flex>
+            </VStack>
+          </DrawerBody>
+        </DrawerContent>
       </Drawer>
     </Box>
   );

@@ -1,32 +1,28 @@
 import {
-  Card,
-  CardBody,
-  Image,
-  Stack,
-  Heading,
-  Text,
-  Button,
   Box,
+  Image,
+  Text,
   HStack,
-  Divider,
+  VStack,
   Icon,
+  Badge,
+  Flex,
   Tooltip,
   useColorModeValue,
+  AspectRatio,
 } from "@chakra-ui/react";
 import {
-  FaCalendar,
-  FaMapMarkerAlt,
-  FaTag,
-  FaUserAlt,
-  FaCheckCircle,
-  FaHeart,
-  FaBookmark,
-} from "react-icons/fa";
-import { TbCurrencyNaira } from "react-icons/tb";
+  FiCalendar,
+  FiMapPin,
+  FiHeart,
+  FiBookmark,
+  FiArrowUpRight,
+} from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { Event } from "../types/event";
 import { useEventInteractions } from "../hooks/useEventInteractions";
 import { useState } from "react";
+import { format } from "date-fns";
 
 interface EventCardProps {
   event: Event;
@@ -40,177 +36,265 @@ const EventCard = ({ event, onEventUpdate }: EventCardProps) => {
 
   const isFree = event.pricing.toLowerCase() === "free";
 
-  const handleLike = async () => {
+  const handleLike = async (e: React.MouseEvent) => {
+    e.preventDefault();
     try {
       await toggleLike(localEvent, (updated) => {
         setLocalEvent(updated);
         onEventUpdate?.(updated);
       });
-    } catch (error) {
-      // Error is handled in the hook
+    } catch {
+      // handled in hook
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = async (e: React.MouseEvent) => {
+    e.preventDefault();
     try {
       await toggleSave(localEvent, (updated) => {
         setLocalEvent(updated);
         onEventUpdate?.(updated);
       });
-    } catch (error) {
-      // Error is handled in the hook
+    } catch {
+      // handled in hook
     }
   };
 
-  // Dark/Light mode values
-  const cardBg = useColorModeValue("white", "gray.700");
-  const cardTextColor = useColorModeValue("gray.800", "white");
-  const hoverBg = useColorModeValue("gray.100", "gray.600");
-  const iconColor = useColorModeValue("white", "blue.800");
-  const priceButtonBg = isFree ? "green.500" : "red.500";
-  const priceButtonHover = isFree ? "green.400" : "red.400";
-  const detailColor = useColorModeValue("gray.600", "gray.400");
+  const cardBg = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.100", "gray.700");
+  const hoverBorderColor = useColorModeValue("brand.300", "brand.600");
+  const hoverShadow = useColorModeValue(
+    "0 16px 48px rgba(124,58,237,0.14)",
+    "0 16px 48px rgba(124,58,237,0.28)"
+  );
+  const textColor = useColorModeValue("gray.900", "white");
+  const mutedColor = useColorModeValue("gray.500", "gray.400");
+  const linkColor = useColorModeValue("brand.600", "brand.400");
+
+  const formattedDate = (() => {
+    try {
+      return format(new Date(event.date), "MMM d, yyyy");
+    } catch {
+      return event.date;
+    }
+  })();
+
+  const fallbackImage =
+    "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=600&q=75&auto=format";
 
   return (
-    <Box position="relative" role="group" maxW="sm">
-      {/* Hover Icons */}
-      <HStack
-        position="absolute"
-        top="2"
-        right="2"
-        spacing={2}
-        display={{ base: "flex", md: "none" }}
-        _groupHover={{ display: "flex" }}
-        zIndex="1"
-      >
-        <Tooltip
-          label={localEvent.is_liked ? "Unlike this event" : "Like this event"}
-          fontSize="sm"
-        >
-          <Box
-            as="button"
-            p={2}
-            borderRadius="full"
-            _hover={{ bg: hoverBg }}
-            onClick={handleLike}
-            disabled={isLikeLoading(localEvent.id)}
-          >
-            <Icon
-              as={FaHeart}
-              boxSize={4}
-              color={localEvent.is_liked ? "red.500" : iconColor}
-            />
-          </Box>
-        </Tooltip>
-        <Tooltip
-          label={localEvent.is_saved ? "Unsave this event" : "Save this event"}
-          fontSize="sm"
-        >
-          <Box
-            as="button"
-            p={2}
-            borderRadius="full"
-            _hover={{ bg: hoverBg }}
-            onClick={handleSave}
-            disabled={isSaveLoading(localEvent.id)}
-          >
-            <Icon
-              as={FaBookmark}
-              boxSize={4}
-              color={localEvent.is_saved ? "blue.500" : iconColor}
-            />
-          </Box>
-        </Tooltip>
-      </HStack>
-
-      {/* Card */}
-      <Card
-        maxW="sm"
-        borderRadius="md"
-        overflow="hidden"
-        boxShadow="lg"
+    <Link to={`/events/${event.id}`} style={{ display: "block" }}>
+      <Box
         bg={cardBg}
-        color={cardTextColor}
+        borderRadius="2xl"
+        overflow="hidden"
+        border="1px solid"
+        borderColor={borderColor}
+        transition="all 0.25s ease"
+        _hover={{
+          transform: "translateY(-5px)",
+          boxShadow: hoverShadow,
+          borderColor: hoverBorderColor,
+        }}
+        role="group"
+        position="relative"
+        cursor="pointer"
       >
-        <Image
-          src={event.image || "/placeholder-image.jpg"}
-          alt={event.title}
-          borderRadius="md"
-        />
+        {/* Image */}
+        <AspectRatio ratio={16 / 9}>
+          <Box position="relative" overflow="hidden">
+            <Image
+              src={event.image || fallbackImage}
+              alt={event.title}
+              w="100%"
+              h="100%"
+              objectFit="cover"
+              transition="transform 0.35s ease"
+              _groupHover={{ transform: "scale(1.06)" }}
+              fallbackSrc={fallbackImage}
+            />
 
-        <CardBody>
-          <Stack spacing={4}>
-            {/* Event Name with Pricing Button */}
-            <HStack justifyContent="left" alignItems="center" gap={6}>
-              <Heading size="md">{event.title}</Heading>
-              <Button
-                size="xs"
-                bg={priceButtonBg}
-                color="white"
-                _hover={{ bg: priceButtonHover }}
-                leftIcon={
-                  isFree ? (
-                    <Icon as={FaCheckCircle} />
-                  ) : (
-                    <Icon as={TbCurrencyNaira} />
-                  )
-                }
+            {/* Gradient overlay */}
+            <Box
+              position="absolute"
+              inset={0}
+              bgGradient="linear(to-t, blackAlpha.700 0%, blackAlpha.100 50%, transparent 100%)"
+            />
+
+            {/* Top-left: price badge */}
+            <Badge
+              position="absolute"
+              top={3}
+              left={3}
+              px={2.5}
+              py={1}
+              borderRadius="full"
+              bg={isFree ? "rgba(16,185,129,0.88)" : "rgba(245,158,11,0.88)"}
+              color="white"
+              backdropFilter="blur(8px)"
+              fontSize="xs"
+              fontWeight="700"
+              letterSpacing="0.02em"
+            >
+              {isFree ? "Free" : "Paid"}
+            </Badge>
+
+            {/* Top-right: like + save */}
+            <HStack
+              position="absolute"
+              top={3}
+              right={3}
+              spacing={1.5}
+              opacity={0}
+              _groupHover={{ opacity: 1 }}
+              transition="opacity 0.2s ease"
+            >
+              <Tooltip
+                label={localEvent.is_liked ? "Unlike" : "Like"}
+                fontSize="xs"
+                hasArrow
               >
-                {isFree ? "Free" : "Paid"}
-              </Button>
-            </HStack>
-
-            {/* HStack for Date and Location with Icons */}
-            <HStack spacing={4} color={detailColor}>
-              <HStack spacing={2}>
-                <Icon as={FaCalendar} boxSize={4} />
-                <Text fontSize="sm">
-                  {new Date(event.date).toLocaleDateString()}
-                </Text>
-              </HStack>
-              <Divider orientation="vertical" />
-              <HStack spacing={2}>
-                <Icon as={FaMapMarkerAlt} boxSize={4} />
-                <Text fontSize="sm">{event.location}</Text>
-              </HStack>
-            </HStack>
-
-            {/* Category and Organizer */}
-            <HStack spacing={4} color={detailColor}>
-              <HStack spacing={2}>
-                <Icon as={FaTag} boxSize={4} />
-                <Text fontSize="sm">{event.category}</Text>
-              </HStack>
-              <HStack spacing={2}>
-                <Icon as={FaUserAlt} boxSize={4} />
-                <Text fontSize="sm" isTruncated maxW="150px">
-                  Organizer #{event.created_by}
-                </Text>
-              </HStack>
-            </HStack>
-
-            {/* View Details Button - Using Link for Navigation */}
-            <Box textAlign="center" w="100%">
-              <Link to={`/events/${event.id}`}>
-                <Button
-                  bg="blue.800"
-                  color="white"
-                  size="sm"
-                  w="100%"
+                <Box
+                  as="button"
+                  p={1.5}
+                  borderRadius="full"
+                  bg="rgba(0,0,0,0.45)"
+                  backdropFilter="blur(8px)"
+                  border="1px solid rgba(255,255,255,0.15)"
+                  color={localEvent.is_liked ? "red.400" : "white"}
                   _hover={{
-                    bg: "blue.700",
-                    transform: "scale(1.03)",
-                    transition: "all 0.3s ease-in-out",
+                    bg: "rgba(0,0,0,0.65)",
+                    transform: "scale(1.1)",
                   }}
+                  transition="all 0.15s ease"
+                  onClick={handleLike}
+                  disabled={isLikeLoading(localEvent.id)}
                 >
-                  View Details
-                </Button>
-              </Link>
-            </Box>
-          </Stack>
-        </CardBody>
-      </Card>
-    </Box>
+                  <Icon
+                    as={FiHeart}
+                    boxSize={3.5}
+                    fill={localEvent.is_liked ? "currentColor" : "none"}
+                  />
+                </Box>
+              </Tooltip>
+
+              <Tooltip
+                label={localEvent.is_saved ? "Unsave" : "Save"}
+                fontSize="xs"
+                hasArrow
+              >
+                <Box
+                  as="button"
+                  p={1.5}
+                  borderRadius="full"
+                  bg="rgba(0,0,0,0.45)"
+                  backdropFilter="blur(8px)"
+                  border="1px solid rgba(255,255,255,0.15)"
+                  color={localEvent.is_saved ? "brand.300" : "white"}
+                  _hover={{
+                    bg: "rgba(0,0,0,0.65)",
+                    transform: "scale(1.1)",
+                  }}
+                  transition="all 0.15s ease"
+                  onClick={handleSave}
+                  disabled={isSaveLoading(localEvent.id)}
+                >
+                  <Icon
+                    as={FiBookmark}
+                    boxSize={3.5}
+                    fill={localEvent.is_saved ? "currentColor" : "none"}
+                  />
+                </Box>
+              </Tooltip>
+            </HStack>
+
+            {/* Bottom-left: category */}
+            <Badge
+              position="absolute"
+              bottom={3}
+              left={3}
+              px={2.5}
+              py={1}
+              borderRadius="full"
+              bg="rgba(124,58,237,0.85)"
+              color="white"
+              backdropFilter="blur(8px)"
+              fontSize="xs"
+              fontWeight="600"
+              textTransform="capitalize"
+            >
+              {event.category}
+            </Badge>
+          </Box>
+        </AspectRatio>
+
+        {/* Card body */}
+        <Box p={4}>
+          <VStack align="stretch" spacing={3}>
+            {/* Title */}
+            <Text
+              fontWeight="700"
+              fontSize="md"
+              color={textColor}
+              lineHeight="1.3"
+              letterSpacing="-0.02em"
+              noOfLines={2}
+            >
+              {event.title}
+            </Text>
+
+            {/* Meta info */}
+            <VStack align="stretch" spacing={1.5}>
+              <HStack spacing={2} color={mutedColor} fontSize="sm">
+                <Icon as={FiCalendar} boxSize={3.5} color="brand.500" flexShrink={0} />
+                <Text>{formattedDate}</Text>
+              </HStack>
+              <HStack spacing={2} color={mutedColor} fontSize="sm">
+                <Icon as={FiMapPin} boxSize={3.5} color="brand.500" flexShrink={0} />
+                <Text noOfLines={1}>{event.location}</Text>
+              </HStack>
+            </VStack>
+
+            {/* CTA */}
+            <Flex
+              align="center"
+              justify="space-between"
+              pt={1}
+              borderTop="1px solid"
+              borderColor={borderColor}
+            >
+              <Text
+                fontSize="sm"
+                fontWeight="600"
+                color={linkColor}
+                _groupHover={{ color: "brand.700" }}
+                transition="color 0.15s ease"
+              >
+                View Details
+              </Text>
+              <Box
+                w="28px"
+                h="28px"
+                borderRadius="full"
+                bg="brand.50"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                color="brand.600"
+                _groupHover={{
+                  bg: "brand.600",
+                  color: "white",
+                  transform: "rotate(-45deg)",
+                }}
+                transition="all 0.2s ease"
+              >
+                <Icon as={FiArrowUpRight} boxSize={3.5} />
+              </Box>
+            </Flex>
+          </VStack>
+        </Box>
+      </Box>
+    </Link>
   );
 };
 

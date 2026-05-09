@@ -361,24 +361,24 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
         </HStack>
       </Flex>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer — always uses opaque values regardless of transparent prop */}
       <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="xs">
         <DrawerOverlay backdropFilter="blur(6px)" bg="blackAlpha.300" />
         <DrawerContent
           bg={isDark ? "gray.900" : "white"}
           borderLeft="1px solid"
-          borderColor={borderColor}
+          borderColor={borderColorOpaque}
         >
-          <DrawerCloseButton mt={3} color={mutedColor} />
+          <DrawerCloseButton mt={3} color={mutedColorOpaque} />
           <DrawerHeader
             borderBottomWidth="1px"
-            borderColor={borderColor}
+            borderColor={borderColorOpaque}
             pb={4}
             pt={5}
           >
             <HStack spacing={2} align="center">
               <Image src={logo} h="24px" w="24px" alt="EventLight icon" />
-              <Text fontWeight="800" fontSize="lg" letterSpacing="-0.04em" color={wordmarkColor}>
+              <Text fontWeight="800" fontSize="lg" letterSpacing="-0.04em" color={wordmarkColorOpaque}>
                 event<Box as="span" color="brand.600">light</Box>
               </Text>
             </HStack>
@@ -405,7 +405,7 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
                     borderRadius="full"
                     placeholder="Search events..."
                     variant="filled"
-                    bg={inputBg}
+                    bg={inputBgOpaque}
                   />
                 </InputGroup>
               </form>
@@ -459,7 +459,7 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
                     </Box>
                   ))}
 
-                  <Divider my={2} borderColor={borderColor} />
+                  <Divider my={2} borderColor={borderColorOpaque} />
 
                   <Box
                     as="button"
@@ -532,7 +532,7 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
 
                   {/* Log in link */}
                   <HStack justify="center" spacing={1.5}>
-                    <Text fontSize="sm" color={mutedColor}>Already have an account?</Text>
+                    <Text fontSize="sm" color={mutedColorOpaque}>Already have an account?</Text>
                     <Box
                       as="button"
                       fontSize="sm"
@@ -547,7 +547,7 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
                 </VStack>
               )}
 
-              <Divider my={3} borderColor={borderColor} />
+              <Divider my={3} borderColor={borderColorOpaque} />
 
               <Flex
                 align="center"
@@ -555,7 +555,7 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
                 px={3}
                 py={2}
               >
-                <Text fontSize="sm" fontWeight="500" color={mutedColor}>
+                <Text fontSize="sm" fontWeight="500" color={mutedColorOpaque}>
                   {isDark ? "Dark mode" : "Light mode"}
                 </Text>
                 <IconButton
@@ -565,7 +565,7 @@ const NavBar = ({ onSearch, transparent = false }: Props) => {
                   variant="ghost"
                   borderRadius="full"
                   onClick={toggleColorMode}
-                  color={mutedColor}
+                  color={mutedColorOpaque}
                 />
               </Flex>
             </VStack>

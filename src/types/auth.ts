@@ -1,6 +1,7 @@
 export interface User {
   id: number;
   email: string;
+  username: string;
   first_name: string;
   last_name: string;
   phone_number: string;
@@ -14,6 +15,11 @@ export interface User {
   max_distance_km: number | null;
   email_notifications: boolean;
   event_reminders: boolean;
+  date_joined: string;
+  events_created_count: number;
+  events_liked_count: number;
+  events_saved_count: number;
+  events_attending_count: number;
 }
 
 export interface LoginCredentials {
@@ -30,6 +36,7 @@ export interface RegisterData {
 }
 
 export interface ProfileUpdateData {
+  username?: string;
   first_name?: string;
   last_name?: string;
   phone_number?: string;

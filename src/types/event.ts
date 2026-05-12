@@ -87,8 +87,10 @@ export interface EventFilters {
   pricing?: string;
   language?: string;
   age_group?: string;
+  is_featured?: boolean;
   ordering?: string;
-  page: number;
+  page?: number;
+  page_size?: number;
 }
 
 export interface PaginatedEvents {

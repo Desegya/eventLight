@@ -60,10 +60,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: LoginCredentials): Promise<boolean> => {
     try {
       setLoading(true);
-      await authService.login(credentials);
+      const response = await authService.login(credentials);
 
-      // Get user data after login
-      const userData = await authService.getCurrentUser();
+      // Use user from login response; fall back to a separate GET only if absent
+      const userData = response.user ?? await authService.getCurrentUser();
       setUser(userData);
 
       toast({
@@ -98,10 +98,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: RegisterData): Promise<boolean> => {
     try {
       setLoading(true);
-      await authService.register(userData);
+      const response = await authService.register(userData);
 
-      // Get user data after registration
-      const userDataResponse = await authService.getCurrentUser();
+      // Use user from register response; fall back to a separate GET only if absent
+      const userDataResponse = response.user ?? await authService.getCurrentUser();
       setUser(userDataResponse);
 
       toast({

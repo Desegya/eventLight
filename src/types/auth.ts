@@ -61,7 +61,6 @@ export interface PasswordResetData {
 }
 
 export interface PasswordResetConfirmData {
-  uid: string;
   token: string;
   new_password1: string;
   new_password2: string;

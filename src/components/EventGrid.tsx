@@ -30,7 +30,7 @@ const EventGrid = ({ filters, onFiltersChange }: Props) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  const currentPage = filters.page;
+  const currentPage = filters.page ?? 1;
 
   const mutedColor     = useColorModeValue("gray.500", "gray.400");
   const borderColor    = useColorModeValue("gray.200", "gray.700");

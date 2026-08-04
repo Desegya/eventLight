@@ -11,12 +11,23 @@ import SavedEvents from "./components/SavedEvents";
 import MyEvents from "./components/MyEvents";
 import Notifications from "./components/Notifications";
 import Settings from "./components/Settings";
-import ApiTest from "./components/ApiTest";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+const devOnlyRoutes = import.meta.env.DEV
+  ? [
+      {
+        path: "/api-test",
+        lazy: async () => {
+          const { default: ApiTest } = await import("./components/ApiTest");
+          return { Component: ApiTest };
+        },
+      },
+    ]
+  : [];
 
 const router = createBrowserRouter([
   {
@@ -107,10 +118,7 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  {
-    path: "/api-test",
-    element: <ApiTest />,
-  },
+  ...devOnlyRoutes,
   {
     path: "/dashboard",
     element: (

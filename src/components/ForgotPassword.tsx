@@ -5,6 +5,8 @@ import {
   FormControl,
   FormLabel,
   Input,
+  InputGroup,
+  InputLeftElement,
   VStack,
   Heading,
   Text,
@@ -288,21 +290,25 @@ const ForgotPassword = () => {
                     <FormLabel fontSize="sm" fontWeight="600" color={labelColor}>
                       Email address
                     </FormLabel>
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={(e) => { setEmail(e.target.value); if (error) setError(null); }}
-                      placeholder="you@example.com"
-                      bg={inputBg}
-                      border="1.5px solid"
-                      borderColor={borderColor}
-                      borderRadius="xl"
-                      h="46px"
-                      fontSize="sm"
-                      leftElement={<Icon as={FiMail} color={mutedColor} />}
-                      _focus={{ borderColor: "brand.500", boxShadow: "0 0 0 3px rgba(139,92,246,0.15)", bg: panelBg }}
-                      _hover={{ borderColor: "brand.300" }}
-                    />
+                    <InputGroup>
+                      <InputLeftElement pointerEvents="none">
+                        <Icon as={FiMail} color={mutedColor} />
+                      </InputLeftElement>
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => { setEmail(e.target.value); if (error) setError(null); }}
+                        placeholder="you@example.com"
+                        bg={inputBg}
+                        border="1.5px solid"
+                        borderColor={borderColor}
+                        borderRadius="xl"
+                        h="46px"
+                        fontSize="sm"
+                        _focus={{ borderColor: "brand.500", boxShadow: "0 0 0 3px rgba(139,92,246,0.15)", bg: panelBg }}
+                        _hover={{ borderColor: "brand.300" }}
+                      />
+                    </InputGroup>
                   </FormControl>
 
                   <Button

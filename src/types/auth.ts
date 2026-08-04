@@ -53,9 +53,7 @@ export interface ProfileUpdateData {
 }
 
 export interface AuthResponse {
-  key: string;
-  expiry: string;
-  user?: User;
+  user: User;
 }
 
 export interface PasswordChangeData {

@@ -12,6 +12,7 @@ import {
   ProfileUpdateData,
 } from "../types/auth";
 import { authService, AuthError } from "../services/auth";
+import { ensureCsrfCookie } from "../services/csrf";
 import { useToast } from "@chakra-ui/react";
 
 interface AuthContextType {
@@ -36,20 +37,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const toast = useToast();
 
-  const isAuthenticated = authService.isAuthenticated() && !!user;
+  const isAuthenticated = !!user;
 
-  // Load user on app start
+  // Load user on app start. Auth lives in an httpOnly cookie the browser
+  // attaches automatically, so there's no local flag to check first — just
+  // ask the backend and treat a 401 as "not logged in".
   useEffect(() => {
     const loadUser = async () => {
-      if (authService.isAuthenticated()) {
-        try {
-          const userData = await authService.getCurrentUser();
-          setUser(userData);
-        } catch (error) {
-          // Token might be invalid, remove it
-          authService.removeToken();
-          setUser(null);
-        }
+      await ensureCsrfCookie();
+      try {
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
+      } catch (error) {
+        setUser(null);
       }
       setLoading(false);
     };
@@ -61,10 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       const response = await authService.login(credentials);
-
-      // Use user from login response; fall back to a separate GET only if absent
-      const userData = response.user ?? await authService.getCurrentUser();
-      setUser(userData);
+      setUser(response.user);
 
       toast({
         title: "Welcome back!",
@@ -99,10 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       const response = await authService.register(userData);
-
-      // Use user from register response; fall back to a separate GET only if absent
-      const userDataResponse = response.user ?? await authService.getCurrentUser();
-      setUser(userDataResponse);
+      setUser(response.user);
 
       toast({
         title: "Account Created!",
@@ -157,14 +151,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const refreshUser = async (): Promise<void> => {
-    if (authService.isAuthenticated()) {
-      try {
-        const userData = await authService.getCurrentUser();
-        setUser(userData);
-      } catch (error) {
-        setUser(null);
-        authService.removeToken();
-      }
+    try {
+      const userData = await authService.getCurrentUser();
+      setUser(userData);
+    } catch (error) {
+      setUser(null);
     }
   };
 

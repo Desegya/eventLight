@@ -7,6 +7,7 @@ import {
   EventFilters,
   PaginatedEvents,
 } from "../types/event";
+import { ensureCsrfCookie, csrfHeader } from "./csrf";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
@@ -20,14 +21,15 @@ class ApiError extends Error {
 
 class ApiService {
   private async request(endpoint: string, options: RequestInit = {}): Promise<any> {
+    await ensureCsrfCookie();
     const url = `${API_BASE_URL}${endpoint}`;
-    const token = localStorage.getItem("authToken");
 
     const config: RequestInit = {
       ...options,
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Token ${token}` }),
+        ...csrfHeader(),
         ...options.headers,
       },
     };
@@ -57,13 +59,14 @@ class ApiService {
     formData: FormData,
     options: RequestInit = {}
   ): Promise<any> {
+    await ensureCsrfCookie();
     const url = `${API_BASE_URL}${endpoint}`;
-    const token = localStorage.getItem("authToken");
 
     const config: RequestInit = {
       ...options,
+      credentials: "include",
       headers: {
-        ...(token && { Authorization: `Token ${token}` }),
+        ...csrfHeader(),
         ...options.headers,
       },
       body: formData,

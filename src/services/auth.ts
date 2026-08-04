@@ -8,6 +8,7 @@ import {
   PasswordResetConfirmData,
   ProfileUpdateData,
 } from "../types/auth";
+import { ensureCsrfCookie, csrfHeader } from "./csrf";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
@@ -24,14 +25,15 @@ class AuthService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<any> {
+    await ensureCsrfCookie();
     const url = `${API_BASE_URL}${endpoint}`;
-    const token = this.getToken();
 
     const config: RequestInit = {
       ...options,
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
-        ...(token && { Authorization: `Token ${token}` }),
+        ...csrfHeader(),
         ...options.headers,
       },
     };
@@ -57,58 +59,27 @@ class AuthService {
     }
   }
 
-  // Token management
-  getToken(): string | null {
-    return localStorage.getItem("authToken");
-  }
-
-  setToken(token: string): void {
-    localStorage.setItem("authToken", token);
-  }
-
-  removeToken(): void {
-    localStorage.removeItem("authToken");
-  }
-
-  isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
-
-  // Authentication endpoints
+  // Authentication endpoints. The auth token itself lives in an httpOnly
+  // cookie set by the backend — this service never sees or stores the raw
+  // token, so there's nothing for page JavaScript (or an XSS payload) to read.
   async register(userData: RegisterData): Promise<AuthResponse> {
-    const response = await this.request("/auth/register/", {
+    return this.request("/auth/register/", {
       method: "POST",
       body: JSON.stringify(userData),
     });
-
-    if (response.key) {
-      this.setToken(response.key);
-    }
-
-    return response;
   }
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await this.request("/auth/login/", {
+    return this.request("/auth/login/", {
       method: "POST",
       body: JSON.stringify(credentials),
     });
-
-    if (response.key) {
-      this.setToken(response.key);
-    }
-
-    return response;
   }
 
   async logout(): Promise<void> {
-    try {
-      await this.request("/auth/logout/", {
-        method: "POST",
-      });
-    } finally {
-      this.removeToken();
-    }
+    await this.request("/auth/logout/", {
+      method: "POST",
+    });
   }
 
   async getCurrentUser(): Promise<User> {
